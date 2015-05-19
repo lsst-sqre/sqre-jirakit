@@ -23,26 +23,30 @@ if debug: print cycles
 
 milestones = jira.search_issues('project = DLP and issuetype = Milestone order by fixVersion DESC')
 
-table = []
+table = [cycles]
 
 for milestone in milestones:
     issue = jira.issue(milestone, fields = 'key, summary, fixVersions, customfield_10500')
     #    if debug: print milestone
-    row = dict()
-    for k in cycles:
-        row[k] = None
 
+    # Get the release associated with this milestone
     if issue.fields.fixVersions:
         release = issue.fields.fixVersions[0]
-        print release.name, '<-->', milestone.key
-        row[release.name] = milestone.key
-        # cycles[fixVersion] = issue.key
+        cyc = release.name
+        milestonestr = milestone.key
+
+        row = []
+        for k in cycles:
+            if k == cyc:
+                row.append(milestonestr)
+            else:
+                row.append("-")
+        table.append(row)
     else:
         print 'No release assigned to', issue.key
-    print row
-    table.append(row)
 
-print 40 * '-'
+
+print tabulate.tabulate(table)
 
 
 
