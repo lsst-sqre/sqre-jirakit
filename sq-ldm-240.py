@@ -2,14 +2,17 @@
 
 from __future__ import print_function
 
-from jira import JIRA
-import jirakit
 import os
 import argparse
+
+# jira API python module
+from jira import JIRA
+# in-house module with useful helper code
+import jirakit
+# used to generate tables
 import tabulate
 
 debug = os.getenv("DM_SQUARE_DEBUG")
-trace = False
 
 # argument parsing and default options
 
@@ -38,8 +41,6 @@ opt = parser.parse_args()
 
 #
 
-# WBS = 'customfield_10500'
-
 jira_opts = {
     'server': opt.server
 }
@@ -47,6 +48,11 @@ jira_opts = {
 jira = JIRA(jira_opts)
 
 project = jira.project('DLP')
+
+# Generate a table where
+# - the columns are cycles (aka semesters) [picked from fixVersion]
+# - the rows are WBS units [picked from customfield_10500]
+# - the cells are either ticket keys or titles or ... 
 
 cycles = jirakit.cycles()
 if debug: print(cycles)
