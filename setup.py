@@ -1,6 +1,4 @@
-
 from setuptools import setup, find_packages
-
 
 setup(
     name="jirakit",
@@ -11,6 +9,6 @@ setup(
     author_email="dm-devel@lists.lsst.org",
     url="https://github.com/lsst-sqre/sqre-jirakit",
     packages=find_packages(),
-    scripts=['scripts/sq-ldm-240.py'],
+    scripts=['bin/sq-ldm-240'],
     install_requires=['jira', 'tabulate']
 )
