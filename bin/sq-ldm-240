@@ -2,15 +2,16 @@
 
 from __future__ import print_function
 
+# standard dependencies
 import os
 import argparse
 
-# jira API python module
-from jira import JIRA
-# in-house module with useful helper code
-import jirakit
-# used to generate tables
-import tabulate
+# PyPI dependencies
+from jira import JIRA   # jira API python module
+import tabulate         # used to generate tables
+
+# in-house modules
+import jirakit         # helper code
 
 debug = os.getenv("DM_SQUARE_DEBUG")
 
@@ -52,7 +53,7 @@ project = jira.project('DLP')
 # Generate a table where
 # - the columns are cycles (aka semesters) [picked from fixVersion]
 # - the rows are WBS units [picked from customfield_10500]
-# - the cells are either ticket keys or titles or ... 
+# - the cells are either ticket keys or titles or ...
 
 cycles = jirakit.cycles()
 if debug: print(cycles)
@@ -88,7 +89,7 @@ for milestone in milestones:
                     cell = milestone.fields.summary
                 else:
                     print('This should not happen')
-                
+
                 # row.append(milestonestr)
                 row.append(cell)
             else:
