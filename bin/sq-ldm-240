@@ -94,7 +94,7 @@ for milestone in milestones:
                 row.append(cell)
             else:
                 row.append("-")
-                table.append(row)
+        table.append(row)
     else:
         print('No release assigned to', issue.key)
 
