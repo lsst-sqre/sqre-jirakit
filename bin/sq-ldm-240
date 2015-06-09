@@ -58,7 +58,8 @@ project = jira.project('DLP')
 cycles = jirakit.jirakit.cycles()
 if debug: print(cycles)
 
-milestones = jira.search_issues('project = DLP and issuetype = Milestone order by WBS ASC')
+milestones = jira.search_issues('project = DLP and issuetype = Milestone order by WBS ASC',
+                                maxResults=1000)
 
 cycles.insert(0, 'WBS')
 
