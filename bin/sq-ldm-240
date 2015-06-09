@@ -11,7 +11,7 @@ from jira import JIRA   # jira API python module
 import tabulate         # used to generate tables
 
 # in-house modules
-import jirakit         # helper code
+import jirakit.jirakit  # helper code
 
 debug = os.getenv("DM_SQUARE_DEBUG")
 
@@ -55,7 +55,7 @@ project = jira.project('DLP')
 # - the rows are WBS units [picked from customfield_10500]
 # - the cells are either ticket keys or titles or ...
 
-cycles = jirakit.cycles()
+cycles = jirakit.jirakit.cycles()
 if debug: print(cycles)
 
 milestones = jira.search_issues('project = DLP and issuetype = Milestone order by WBS ASC')
