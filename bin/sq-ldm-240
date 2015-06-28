@@ -28,13 +28,13 @@ parser.add_argument('-s', '--server',
 
 parser.add_argument('-k', '--key',
                     action='store_true',
-                    default=True,
+                    default=False,
                     help='Show the JIRA issue key in the table cell (default behaviour)')
 
 parser.add_argument('-t', '--title',
                     action='store_true',
                     default=False,
-                    help='Show the JIRA issue title in the table cell')
+                    help='Show the JIRA issue title in the table cell (can combine with -k)')
 
 parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
 
@@ -84,12 +84,12 @@ for milestone in milestones:
         for k in cycles:
             if k == cyc:
 
-                if opt.title:
+                if opt.title and opt.key:
+                    cell = milestonestr + ': ' + milestone.fields.summary
+                elif opt.title:
                     cell = milestone.fields.summary
-                elif opt.key:
-                    cell = milestonestr
                 else:
-                    print('This should not happen')
+                    cell = milestonestr
 
                 # row.append(milestonestr)
                 row.append(cell)
