@@ -6,6 +6,7 @@ from __future__ import print_function
 import os
 import sys
 import argparse
+import textwrap
 
 # PyPI dependencies
 from jira import JIRA   # jira API python module
@@ -19,7 +20,20 @@ debug = os.getenv("DM_SQUARE_DEBUG")
 # argument parsing and default options
 
 parser = argparse.ArgumentParser(
-    description='Generate LDM-240 style tables from the LSST DLP JIRA project',
+    prog='sq-ldm-240',
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent('''
+
+    Generate LDM-240 style tables from the LSST DLP JIRA project
+
+    To import into excel, redirect output to a file:
+
+        sq-ldm-240 > foo.txt
+
+    And then import it in excel as a text file, specifying the
+    pipe character (|) as the separator.
+
+    '''),
     epilog='Part of jirakit: https://github.com/lsst-sqre/sqre-jirakit'
 )
 
@@ -101,4 +115,4 @@ for milestone in milestones:
         print('No release assigned to', issue.key, file=sys.stderr)
 
 
-print(tabulate.tabulate(table))
+print(tabulate.tabulate(table, tablefmt='pipe'))
