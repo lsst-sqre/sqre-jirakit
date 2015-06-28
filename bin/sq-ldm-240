@@ -84,10 +84,10 @@ for milestone in milestones:
         for k in cycles:
             if k == cyc:
 
-                if opt.key:
-                    cell = milestonestr
-                elif opt.title:
+                if opt.title:
                     cell = milestone.fields.summary
+                elif opt.key:
+                    cell = milestonestr
                 else:
                     print('This should not happen')
 
