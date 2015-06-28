@@ -4,6 +4,7 @@ from __future__ import print_function
 
 # standard dependencies
 import os
+import sys
 import argparse
 
 # PyPI dependencies
@@ -97,7 +98,7 @@ for milestone in milestones:
                 row.append("-")
         table.append(row)
     else:
-        print('No release assigned to', issue.key)
+        print('No release assigned to', issue.key, file=sys.stderr)
 
 
 print(tabulate.tabulate(table))
