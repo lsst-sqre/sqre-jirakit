@@ -18,6 +18,10 @@ sq-ldm-240
 
 Generates an 'LDM-240' type table. Type -h for options. 
 
+To turn the output into a csv (eg. for excel import or Github view):
+
+     sq-ldm-240 -k | cut -c2- | perl -ne 's/\|/,/g; print' > ldm-240.csv
+
 Known Bugs etc
 ==============
 
