@@ -115,4 +115,4 @@ for milestone in milestones:
         print('No release assigned to', issue.key, file=sys.stderr)
 
 
-print(tabulate.tabulate(table, tablefmt='pipe'))
+print(tabulate.tabulate(table, headers="firstrow",tablefmt='pipe'))
