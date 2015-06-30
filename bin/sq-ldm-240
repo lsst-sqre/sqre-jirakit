@@ -76,8 +76,6 @@ if debug: print(cycles)
 milestones = jira.search_issues('project = DLP and issuetype = Milestone order by WBS ASC',
                                 maxResults=1000)
 
-cycles.insert(0, 'WBS')
-
 table = [cycles]
 
 for milestone in milestones:
@@ -114,5 +112,6 @@ for milestone in milestones:
     else:
         print('No release assigned to', issue.key, file=sys.stderr)
 
+cycles.insert(0, 'WBS')
 
 print(tabulate.tabulate(table, headers="firstrow",tablefmt='pipe'))
