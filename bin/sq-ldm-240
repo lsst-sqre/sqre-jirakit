@@ -4,9 +4,11 @@ from __future__ import print_function
 
 # standard dependencies
 import os
+import csv
 import sys
 import argparse
 import textwrap
+from collections import OrderedDict
 
 # PyPI dependencies
 from jira import JIRA   # jira API python module
@@ -51,6 +53,11 @@ parser.add_argument('-t', '--title',
                     default=False,
                     help='Show the JIRA issue title in the table cell (can combine with -k)')
 
+parser.add_argument('-c', '--csv',
+                    action='store_true',
+                    default=False,
+                    help='Output as CSV format')
+
 parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
 
 opt = parser.parse_args()
@@ -73,45 +80,48 @@ project = jira.project('DLP')
 cycles = jirakit.cycles()
 if debug: print(cycles)
 
-milestones = jira.search_issues('project = DLP and issuetype = Milestone order by WBS ASC',
+def makeRow(wbs, cycles, blank=None):
+    row = OrderedDict()
+    row['WBS'] = wbs
+    for cycle in cycles:
+        row[cycle] = blank
+    return row
+
+milestones = jira.search_issues('project = DLP and issuetype = Milestone order by WBS, id ASC',
                                 maxResults=1000)
 
-table = [cycles]
-
+table = []
 for milestone in milestones:
     issue = jira.issue(milestone)
     #    if debug: print(milestone)
 
     # Get the release associated with this milestone
-    if issue.fields.fixVersions:
-        release = issue.fields.fixVersions[0]
-        cyc = release.name
-        milestonestr = milestone.key
-        if issue.fields.customfield_10500:
-            WBS = issue.fields.customfield_10500
-        else:
-            WBS = 'None'
-
-        row = [WBS]
-
-        for k in cycles:
-            if k == cyc:
-
-                if opt.title and opt.key:
-                    cell = milestonestr + ': ' + milestone.fields.summary
-                elif opt.title:
-                    cell = milestone.fields.summary
-                else:
-                    cell = milestonestr
-
-                # row.append(milestonestr)
-                row.append(cell)
-            else:
-                row.append("-")
-        table.append(row)
-    else:
+    if not issue.fields.fixVersions:
         print('No release assigned to', issue.key, file=sys.stderr)
+        continue
 
-cycles.insert(0, 'WBS')
+    cyc = issue.fields.fixVersions[0].name
+    milestonestr = milestone.key
 
-print(tabulate.tabulate(table, headers="firstrow",tablefmt='pipe'))
+    if issue.fields.customfield_10500:
+        WBS = issue.fields.customfield_10500
+    else:
+        WBS = 'None'
+
+    row = makeRow(WBS, cycles, "" if opt.csv else "-")
+
+    if opt.title and opt.key:
+        row[cyc] = milestone.key + ': ' + milestone.fields.summary
+    elif opt.title:
+        row[cyc] = milestone.fields.summary
+    else:
+        row[cyc] = milestone.key
+
+    table.append(row)
+
+if opt.csv:
+    writer = csv.DictWriter(sys.stdout, fieldnames=table[0].keys())
+    writer.writeheader()
+    writer.writerows(table)
+else:
+    print(tabulate.tabulate(table, headers='keys', tablefmt='pipe'))
