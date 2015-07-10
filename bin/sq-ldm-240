@@ -19,6 +19,8 @@ import lsst.sqre.jirakit as jirakit  # helper code
 
 debug = os.getenv("DM_SQUARE_DEBUG")
 
+JIRA_SERVER = "https://jira.lsstcorp.org"
+
 # argument parsing and default options
 
 parser = argparse.ArgumentParser(
@@ -40,7 +42,7 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('-s', '--server',
-                    default='https://jira.lsstcorp.org/',
+                    default=JIRA_SERVER,
                     help='JIRA server URL')
 
 parser.add_argument('-k', '--key',
