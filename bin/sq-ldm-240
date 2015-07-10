@@ -119,6 +119,11 @@ for milestone in milestones:
     else:
         row[cyc] = milestone.key
 
+    # In CSV mode we want to include a URL to the actual issue
+    if opt.csv:
+        row[cyc] = '=HYPERLINK("{}","{}")'.format(JIRA_SERVER + "/browse/" + milestone.key,
+                                              row[cyc])
+
     table.append(row)
 
 if opt.csv:
