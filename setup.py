@@ -9,7 +9,7 @@ setup(
     author_email="dm-devel@lists.lsst.org",
     url="https://github.com/lsst-sqre/sqre-jirakit",
     packages=['lsst','lsst.sqre'],
-    scripts=['bin/sq-ldm-240'],
+    scripts=['bin/sq-ldm-240', 'bin/dlp-graph'],
     install_requires=['jira', 'tabulate'],
     test_suite="tests",
 )
