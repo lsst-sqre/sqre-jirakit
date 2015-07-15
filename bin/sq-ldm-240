@@ -89,7 +89,7 @@ def makeRow(wbs, cycles, blank=None):
         row[cycle] = blank
     return row
 
-milestones = jira.search_issues('project = DLP and issuetype = Milestone order by WBS, id ASC',
+milestones = jira.search_issues('project = DLP AND issuetype = Milestone ORDER BY WBS ASC, fixVersion DESC',
                                 maxResults=1000)
 
 table = []
