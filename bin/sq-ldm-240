@@ -64,8 +64,6 @@ parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
 
 opt = parser.parse_args()
 
-#
-
 jira_opts = {
     'server': opt.server
 }
@@ -103,7 +101,6 @@ for milestone in milestones:
         continue
 
     cyc = issue.fields.fixVersions[0].name
-    milestonestr = milestone.key
 
     if issue.fields.customfield_10500:
         WBS = issue.fields.customfield_10500
