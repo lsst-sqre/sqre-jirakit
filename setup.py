@@ -8,8 +8,8 @@ setup(
     author="LSST DM team",
     author_email="dm-devel@lists.lsst.org",
     url="https://github.com/lsst-sqre/sqre-jirakit",
-    packages=['lsst','lsst.sqre'],
-    scripts=['bin/sq-ldm-240', 'bin/dlp-graph'],
-    install_requires=['jira', 'tabulate'],
+    packages=['lsst', 'lsst.sqre'],
+    scripts=['bin/sq-ldm-240', 'bin/dlp-graph', 'bin/dlp-web'],
+    install_requires=['jira', 'tabulate', 'flask', 'graphviz'],
     test_suite="tests",
 )

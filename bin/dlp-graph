@@ -8,7 +8,7 @@ import textwrap
 
 # in-house modules
 import lsst.sqre.jirakit
-from lsst.sqre.jira2dot import jira2dot
+from lsst.sqre.jira2dot import jira2dot, attr_func, rank_func
 
 # argument parsing and default options
 
@@ -31,7 +31,7 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('-s', '--server',
-                    default='https://jira.lsstcorp.org/',
+                    default=lsst.sqre.jirakit.SERVER,
                     help='JIRA server URL')
 parser.add_argument('-w', '--where',
                     default=None,
@@ -46,17 +46,5 @@ query = '(project = DLP AND (issuetype = Milestone OR issuetype = "Meta-epic"))'
 if opt.where:
     query = "{0} AND {1}".format(opt.where, query)
 
-def attr_func(issue):
-    if issue.fields.issuetype.name == "Milestone":
-        return 'style="rounded,filled"',
-    else:
-        return ()
-
-def rank_func(issue):
-    if issue.fields.issuetype.name == "Milestone" and len(issue.fields.fixVersions) > 0:
-        return issue.fields.fixVersions[0]
-    return None
-
 jira2dot(opt.server, query, attr_func=attr_func, diag_name="DLP Roadmap", rank_func=rank_func,
          ranks=lsst.sqre.jirakit.cycles())
-
