@@ -6,6 +6,17 @@ import textwrap
 
 from jira import JIRA
 
+def attr_func(issue):
+    if issue.fields.issuetype.name == "Milestone":
+        return 'style="rounded,filled";fillcolor="powderblue"',
+    else:
+        return ()
+
+def rank_func(issue):
+    if issue.fields.issuetype.name == "Milestone" and len(issue.fields.fixVersions) > 0:
+        return issue.fields.fixVersions[0]
+    return None
+
 def jira2dot(server, query, file=sys.stdout, link_types=("Blocks",), attr_func=None, rank_func=None,
              ranks=None, diag_name="Diagram"):
     """Generate a GraphViz dot file displaying the relationships between JIRA issues.

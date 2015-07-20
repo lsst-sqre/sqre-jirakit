@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+
+import flask
+import graphviz
+
+import os
+from contextlib import contextmanager
+from io import BytesIO
+from shutil import rmtree
+from tempfile import mkdtemp
+
+from lsst.sqre.jira2dot import jira2dot, attr_func, rank_func
+from lsst.sqre.jirakit import cycles, SERVER
+
+app = flask.Flask(__name__)
+
+QUERY='project = DLP AND (issuetype = Milestone OR issuetype = "Meta-epic") AND wbs ~ "%s"'
+
+@contextmanager
+def tempdir():
+    dirname = mkdtemp()
+    try:
+        yield dirname
+    finally:
+        rmtree(dirname, ignore_errors=True)
+
+@app.route('/wbs/<wbs>')
+def get_dot(wbs):
+    dot = BytesIO()
+    jira2dot(SERVER, QUERY % wbs, file=dot, attr_func=attr_func, rank_func=rank_func, ranks=cycles())
+    dot.seek(0)
+    graph = graphviz.Source(dot.read())
+    with tempdir() as dirname:
+        image = graph.render("graph", cleanup=True, directory=dirname)
+        return flask.send_file(os.path.join(dirname, "graph.pdf"))
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=8080)

@@ -19,8 +19,6 @@ import lsst.sqre.jirakit as jirakit  # helper code
 
 debug = os.getenv("DM_SQUARE_DEBUG")
 
-JIRA_SERVER = "https://jira.lsstcorp.org"
-
 # argument parsing and default options
 
 parser = argparse.ArgumentParser(
@@ -42,7 +40,7 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('-s', '--server',
-                    default=JIRA_SERVER,
+                    default=jirakit.SERVER,
                     help='JIRA server URL')
 
 parser.add_argument('-k', '--key',
@@ -123,7 +121,7 @@ for milestone in milestones:
 
     # In CSV mode we want to include a URL to the actual issue
     if opt.csv and not opt.no_url:
-        row[cyc] = '=HYPERLINK("{}","{}")'.format(JIRA_SERVER + "/browse/" + milestone.key,
+        row[cyc] = '=HYPERLINK("{}","{}")'.format(jirakit.SERVER + "/browse/" + milestone.key,
                                               row[cyc])
 
     table.append(row)
