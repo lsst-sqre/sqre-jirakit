@@ -17,6 +17,9 @@ app = flask.Flask(__name__)
 QUERY='project = DLP AND (issuetype = Milestone OR issuetype = "Meta-epic") AND wbs ~ "%s"'
 DEFAULT_FMT="pdf"
 
+# Supported formats. A request for anything else throws a 404.
+FMTS = {"dot", "eps", "fig", "gif", "pdf", "svg", "png", "ps", "svg"}
+
 @contextmanager
 def tempdir():
     dirname = mkdtemp()
@@ -31,7 +34,7 @@ def get_graph(wbs):
 
 @app.route('/wbs/<fmt>/<wbs>')
 def get_formatted_graph(fmt, wbs):
-    if fmt not in graphviz.files.FORMATS:
+    if fmt not in FMTS:
         flask.abort(404)
     dot = BytesIO()
     jira2dot(SERVER, QUERY % wbs, file=dot, attr_func=attr_func, rank_func=rank_func, ranks=cycles())
