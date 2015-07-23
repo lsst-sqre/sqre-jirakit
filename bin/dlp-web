@@ -31,6 +31,8 @@ def get_graph(wbs):
 
 @app.route('/wbs/<fmt>/<wbs>')
 def get_formatted_graph(fmt, wbs):
+    if fmt not in graphviz.files.FORMATS:
+        flask.abort(404)
     dot = BytesIO()
     jira2dot(SERVER, QUERY % wbs, file=dot, attr_func=attr_func, rank_func=rank_func, ranks=cycles())
     dot.seek(0)
@@ -38,11 +40,6 @@ def get_formatted_graph(fmt, wbs):
     with tempdir() as dirname:
         image = graph.render("graph", cleanup=True, directory=dirname)
         return flask.send_file(os.path.join(dirname, "graph%s%s" % (os.path.extsep, fmt)))
-
-# Likely thrown because the requested format is unknown.
-@app.errorhandler(ValueError)
-def handle_ValueError(error):
-    return error.message, 404
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8080)
