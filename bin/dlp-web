@@ -15,6 +15,7 @@ from lsst.sqre.jirakit import cycles, SERVER
 app = flask.Flask(__name__)
 
 QUERY='project = DLP AND (issuetype = Milestone OR issuetype = "Meta-epic") AND wbs ~ "%s"'
+DEFAULT_FMT="pdf"
 
 @contextmanager
 def tempdir():
@@ -25,14 +26,23 @@ def tempdir():
         rmtree(dirname, ignore_errors=True)
 
 @app.route('/wbs/<wbs>')
-def get_dot(wbs):
+def get_graph(wbs):
+    return flask.redirect(flask.url_for("get_formatted_graph", wbs=wbs, fmt=DEFAULT_FMT))
+
+@app.route('/wbs/<fmt>/<wbs>')
+def get_formatted_graph(fmt, wbs):
     dot = BytesIO()
     jira2dot(SERVER, QUERY % wbs, file=dot, attr_func=attr_func, rank_func=rank_func, ranks=cycles())
     dot.seek(0)
-    graph = graphviz.Source(dot.read())
+    graph = graphviz.Source(dot.read(), format=fmt)
     with tempdir() as dirname:
         image = graph.render("graph", cleanup=True, directory=dirname)
-        return flask.send_file(os.path.join(dirname, "graph.pdf"))
+        return flask.send_file(os.path.join(dirname, "graph%s%s" % (os.path.extsep, fmt)))
+
+# Likely thrown because the requested format is unknown.
+@app.errorhandler(ValueError)
+def handle_ValueError(error):
+    return error.message, 404
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8080)
