@@ -8,8 +8,6 @@ import textwrap
 import lsst.sqre.jirakit as jirakit  # helper code
 from lsst.sqre.jira2txt import jira2txt
 
-QUERY = 'project = DLP AND issuetype = Milestone ORDER BY WBS ASC, fixVersion DESC',
-
 # argument parsing and default options
 parser = argparse.ArgumentParser(
     prog='sq-ldm-240',
@@ -57,5 +55,5 @@ parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
 
 if __name__ == "__main__":
     opt = parser.parse_args()
-    jira2txt(opt.server, QUERY, make_csv=opt.csv, show_key=opt.key,
-             show_title=opt.title, show_url=not opt.no_url)
+    jira2txt(opt.server, jirakit.build_query(('Milestone',), "02*"), csv=opt.csv,
+             show_key=opt.key, show_title=opt.title, show_url=not opt.no_url)

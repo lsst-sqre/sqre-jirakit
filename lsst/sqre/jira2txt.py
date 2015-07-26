@@ -52,4 +52,4 @@ def jira2txt(server, query, output=sys.stdout, csv=False, show_key=True, show_ti
         writer.writeheader()
         writer.writerows(table)
     else:
-        print(tabulate(table, headers='keys', tablefmt='pipe'), file=output)
+        print(str(tabulate(table, headers='keys', tablefmt='pipe')), file=output)
