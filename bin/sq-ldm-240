@@ -1,26 +1,14 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-
 # standard dependencies
-import os
-import csv
-import sys
 import argparse
 import textwrap
-from collections import OrderedDict
-
-# PyPI dependencies
-from jira import JIRA   # jira API python module
-import tabulate         # used to generate tables
 
 # in-house modules
 import lsst.sqre.jirakit as jirakit  # helper code
-
-debug = os.getenv("DM_SQUARE_DEBUG")
+from lsst.sqre.jira2txt import jira2txt
 
 # argument parsing and default options
-
 parser = argparse.ArgumentParser(
     prog='sq-ldm-240',
     formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -65,70 +53,7 @@ parser.add_argument('--no-url',
 
 parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
 
-opt = parser.parse_args()
-
-jira_opts = {
-    'server': opt.server
-}
-
-jira = JIRA(jira_opts)
-
-project = jira.project('DLP')
-
-# Generate a table where
-# - the columns are cycles (aka semesters) [picked from fixVersion]
-# - the rows are WBS units [picked from customfield_10500]
-# - the cells are either ticket keys or titles or ...
-
-cycles = jirakit.cycles()
-if debug: print(cycles)
-
-def makeRow(wbs, cycles, blank=None):
-    row = OrderedDict()
-    row['WBS'] = wbs
-    for cycle in cycles:
-        row[cycle] = blank
-    return row
-
-milestones = jira.search_issues('project = DLP AND issuetype = Milestone ORDER BY WBS ASC, fixVersion DESC',
-                                maxResults=1000)
-
-table = []
-for milestone in milestones:
-    issue = jira.issue(milestone)
-    #    if debug: print(milestone)
-
-    # Get the release associated with this milestone
-    if not issue.fields.fixVersions:
-        print('No release assigned to', issue.key, file=sys.stderr)
-        continue
-
-    cyc = issue.fields.fixVersions[0].name
-
-    if issue.fields.customfield_10500:
-        WBS = issue.fields.customfield_10500
-    else:
-        WBS = 'None'
-
-    row = makeRow(WBS, cycles, "" if opt.csv else "-")
-
-    if opt.title and opt.key:
-        row[cyc] = milestone.key + ': ' + milestone.fields.summary
-    elif opt.title:
-        row[cyc] = milestone.fields.summary
-    else:
-        row[cyc] = milestone.key
-
-    # In CSV mode we want to include a URL to the actual issue
-    if opt.csv and not opt.no_url:
-        row[cyc] = '=HYPERLINK("{}","{}")'.format(jirakit.SERVER + "/browse/" + milestone.key,
-                                              row[cyc])
-
-    table.append(row)
-
-if opt.csv:
-    writer = csv.DictWriter(sys.stdout, fieldnames=table[0].keys())
-    writer.writeheader()
-    writer.writerows(table)
-else:
-    print(tabulate.tabulate(table, headers='keys', tablefmt='pipe'))
+if __name__ == "__main__":
+    opt = parser.parse_args()
+    jira2txt(opt.server, jirakit.build_query(('Milestone',), "02*"), csv=opt.csv,
+             show_key=opt.key, show_title=opt.title, show_url=not opt.no_url)

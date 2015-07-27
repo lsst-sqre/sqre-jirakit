@@ -3,7 +3,7 @@
 from __future__ import print_function
 import sys
 
-from lsst.sqre.jirakit import SERVER, cycles
+from lsst.sqre.jirakit import SERVER, cycles, build_query
 from jira import JIRA
 
 QUERY = 'project = DLP AND issuetype in (Milestone, "Meta-epic")'
@@ -55,7 +55,8 @@ def get_bad_blocks(issues, compare_fn=compare):
             and not good_block(blocker, issues[blocked_key], compare_fn)]
 
 if __name__ == "__main__":
-    issues = get_issues(QUERY, JIRA(dict(server=SERVER)))
+    issues = get_issues(build_query(("Milestone", "Meta-epic"), "02C*"),
+                        JIRA(dict(server=SERVER)))
     bad_blocks = get_bad_blocks(issues)
     if bad_blocks:
         for blocker, blocked in bad_blocks:
