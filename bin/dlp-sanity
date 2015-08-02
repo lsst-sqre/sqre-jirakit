@@ -3,7 +3,7 @@
 from __future__ import print_function
 import sys
 
-from lsst.sqre.jirakit import SERVER, cycles, build_query
+from lsst.sqre.jirakit import SERVER, cycles, build_query, get_issues
 from jira import JIRA
 
 QUERY = 'project = DLP AND issuetype in (Milestone, "Meta-epic")'
@@ -12,11 +12,6 @@ def compare(a, b, ordering=list(cycles())):
     # Returns negative if a appears before b in ordering, zero if a
     # and b are at the same position, positive if a is after b.
     return cmp(ordering.index(a), ordering.index(b))
-
-def get_issues(query, jiraConn):
-    # Construct a mapping from Id to milestone for all milestones
-    # which satisfy QUERY.
-    return {issue.key: issue for issue in jiraConn.search_issues(query, maxResults=None)}
 
 def get_cycle(issue):
     # Return the name of the first entry in the fixVersions field of issue.
@@ -61,8 +56,10 @@ def get_unscheduled_milestones(issues):
                  or not issue.fields.fixVersions)]
 
 if __name__ == "__main__":
-    issues = get_issues(build_query(("Milestone", "Meta-epic"), "02C*"),
-                        JIRA(dict(server=SERVER)))
+    # Construct a mapping from Id to milestone for relevant milestones
+    issues = {issue.key: issue for issue in
+              get_issues(SERVER, build_query(("Milestone", "Meta-epic"), "02C*"))}
+
     found_errors = False
 
     # Check for unscheduled milestones

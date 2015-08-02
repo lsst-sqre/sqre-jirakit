@@ -57,6 +57,6 @@ parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
 
 if __name__ == "__main__":
     opt = parser.parse_args()
-    issues = JIRA(dict(server=opt.server)).search_issues(jirakit.build_query(('Milestone',), "02*"))
+    issues = jirakit.get_issues(opt.server, jirakit.build_query(('Milestone',), "02*"))
     jira2txt(issues, csv=opt.csv, show_key=opt.key, show_title=opt.title,
              url_base = '' if opt.no_url else opt.server + "browse/")
