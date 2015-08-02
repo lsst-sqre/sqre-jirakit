@@ -4,8 +4,6 @@ import sys
 import logging
 import textwrap
 
-from jira import JIRA
-
 def attr_func(issue):
     if issue.fields.issuetype.name == "Milestone":
         return 'style="rounded,filled";fillcolor="powderblue"',
@@ -17,13 +15,12 @@ def rank_func(issue):
         return issue.fields.fixVersions[0]
     return None
 
-def jira2dot(server, query, file=sys.stdout, link_types=("Blocks",), attr_func=None, rank_func=None,
+def jira2dot(issues, file=sys.stdout, link_types=("Blocks",), attr_func=None, rank_func=None,
              ranks=None, diag_name="Diagram"):
     """Generate a GraphViz dot file displaying the relationships between JIRA issues.
 
     Arguments:
-      server ---------------- URL for the JIRA server
-      query ----------------- SQL query to pass to JIRA to limit issues
+      issues ---------------- Iterable of issues to process
       file ------------------ Python file-like object to write output to
       link_types ------------ Sequence of link types to include in the graph
       attr_func ------------- Callback function that takes a jira.Issue object and returns a sequence
@@ -36,12 +33,10 @@ def jira2dot(server, query, file=sys.stdout, link_types=("Blocks",), attr_func=N
     """
     file.write('digraph "{0}" {{\n'.format(diag_name))
     file.write('  node [fontname="monospace", shape="box"]')
-    jira = JIRA(dict(server=server))
     by_key = {}
     by_rank = {}
 
-    for item in jira.search_issues(query, maxResults=None):
-        issue = jira.issue(item)
+    for issue in issues:
         by_key[issue.key] = issue
 
         # Populate a dict indexed by caller-defined rank.

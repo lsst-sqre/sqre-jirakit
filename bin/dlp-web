@@ -2,7 +2,6 @@
 
 import flask
 import graphviz
-from jira import JIRA
 
 import os
 from contextlib import contextmanager
@@ -13,7 +12,7 @@ from urlparse import urljoin
 
 from lsst.sqre.jira2dot import jira2dot, attr_func, rank_func
 from lsst.sqre.jira2txt import jira2txt
-from lsst.sqre.jirakit import build_query, cycles, SERVER
+from lsst.sqre.jirakit import build_query, cycles, get_issues, SERVER
 
 app = flask.Flask(__name__)
 
@@ -21,9 +20,6 @@ DEFAULT_FMT="pdf"
 
 # Supported formats. A request for anything else throws a 404.
 FMTS = {"dot", "eps", "fig", "pdf", "svg", "png", "ps", "svg"}
-
-def get_issues(server, query, max_results=10000):
-    return JIRA(dict(server=server)).search_issues(query, maxResults=max_results)
 
 @contextmanager
 def tempdir():
@@ -42,8 +38,8 @@ def get_formatted_graph(fmt, wbs):
     if fmt not in FMTS:
         flask.abort(404)
     dot = BytesIO()
-    jira2dot(SERVER, build_query(("Milestone", "Meta-epic"), wbs), file=dot,
-             attr_func=attr_func, rank_func=rank_func, ranks=cycles())
+    issues = get_issues(SERVER, build_query(("Milestone", "Meta-epic"), wbs))
+    jira2dot(issues, file=dot, attr_func=attr_func, rank_func=rank_func, ranks=cycles())
     dot.seek(0)
     graph = graphviz.Source(dot.read(), format=fmt)
     with tempdir() as dirname:

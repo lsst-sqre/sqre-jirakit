@@ -46,5 +46,7 @@ query = '(project = DLP AND (issuetype = Milestone OR issuetype = "Meta-epic"))'
 if opt.where:
     query = "{0} AND {1}".format(opt.where, query)
 
-jira2dot(opt.server, query, attr_func=attr_func, diag_name="DLP Roadmap", rank_func=rank_func,
+issues = lsst.sqre.jirakit.get_issues(opt.server, query)
+
+jira2dot(issues, attr_func=attr_func, diag_name="DLP Roadmap", rank_func=rank_func,
          ranks=lsst.sqre.jirakit.cycles())
