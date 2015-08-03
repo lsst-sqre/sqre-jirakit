@@ -36,7 +36,7 @@ def jira2txt(issues, output=sys.stdout, csv=False, show_key=True, show_title=Fal
             row[cyc] = issue.key + ': ' + issue.fields.summary
         elif show_title:
             row[cyc] = issue.fields.summary
-        else:
+        elif show_key:
             row[cyc] = issue.key
 
         # In CSV mode we can include a URL to the actual issue

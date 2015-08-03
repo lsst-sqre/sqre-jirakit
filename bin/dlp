@@ -13,7 +13,7 @@ DEFAULT_WBS = "02*"
 
 def generate_txt(opts):
     issues = jirakit.get_issues(opts.server, jirakit.build_query(('Milestone',), opts.wbs))
-    return jira2txt(issues, csv=True if opts.mode == "csv" else False, show_key=opts.key,
+    return jira2txt(issues, csv=True if opts.mode == "csv" else False, show_key=not opts.no_key,
                     show_title=opts.title, url_base = '' if opts.no_url else opts.server + "browse/")
 
 def generate_dot(opts):
@@ -31,55 +31,49 @@ def check_sanity(opts):
 def run_server(opts):
     build_server().run(host=opts.host, port=opts.port)
 
-parser = argparse.ArgumentParser(epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit")
+parser = argparse.ArgumentParser(epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit",
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
 parser.add_argument('-s', '--server', default=jirakit.SERVER)
 parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
 
 subparsers = parser.add_subparsers(dest="mode")
 
-parser_csv = subparsers.add_parser('csv', help='Generate CSV output')
-parser_csv.add_argument('-k', '--key', action='store_true', default=False,
-                        help='Show the JIRA issue key in the table cell (default behaviour)')
-parser_csv.add_argument('-t', '--title', action='store_true', default=False,
+parser_csv = subparsers.add_parser('csv', help='Generate CSV output',
+                                   formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_csv.add_argument('-t', '--title', action='store_true',
                         help='Show the JIRA issue title in the table cell (can combine with -k)')
+parser_csv.add_argument('--no-key', action='store_true',
+                        help='Do not show the JIRA issue key in the table cell')
 parser_csv.add_argument('--no-url', action='store_true', default=False,
                         help='Do not include hyperlinks in CSV output')
 parser_csv.add_argument('-w', '--wbs', default=DEFAULT_WBS, help='Limit results by WBS')
 parser_csv.set_defaults(func=generate_txt)
 
-parser_tab = subparsers.add_parser('tab', help='Generate tabular output')
-parser_tab.add_argument('-k', '--key', action='store_true', default=False,
-                        help='Show the JIRA issue key in the table cell (default behaviour)')
+parser_tab = subparsers.add_parser('tab', help='Generate tabular output',
+                                   formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_tab.add_argument('-t', '--title', action='store_true', default=False,
                         help='Show the JIRA issue title in the table cell (can combine with -k)')
+parser_tab.add_argument('--no-key', action='store_true',
+                        help='Do not show the JIRA issue key in the table cell')
 parser_tab.add_argument('--no-url', action='store_true', default=False,
                         help='Do not include hyperlinks in CSV outputput')
 parser_tab.add_argument('-w', '--wbs', default=DEFAULT_WBS, help='Limit results by WBS')
 parser_tab.set_defaults(func=generate_txt)
 
 parser_dot = subparsers.add_parser('dot', help='Generate GraphViz output',
-    formatter_class=argparse.RawDescriptionHelpFormatter,
-    description=textwrap.dedent('''
-    Generate a graph of LSST DLP JIRA project in GraphViz dot format.
-
-    To export to e.g. SVG, pipe to the dot utility:
-
-        dlp-graph | dot -T svg > foot.svg
-
-    There are other dot output formats, but SVG is particularly useful in that it
-    can be loaded directly by most web browsers, which lets you follow the links
-    embedded in the graph.
-    ''')
-)
+                                   formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_dot.add_argument('-w', '--wbs', default=DEFAULT_WBS, help='Limit results by WBS')
 parser_dot.set_defaults(func=generate_dot)
 
-parser_serve = subparsers.add_parser('serve', help='Serve DLP project summaries by HTTP')
+parser_serve = subparsers.add_parser('serve', help='Serve DLP project summaries by HTTP',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_serve.add_argument('--host', default='0.0.0.0', help='Hostname on which to listen')
 parser_serve.add_argument('--port', default=8080, type=int, help='Port on which to listen')
 parser_serve.set_defaults(func=run_server)
 
-parser_sanity = subparsers.add_parser('sanity', help='Check DLP project for consistency')
+parser_sanity = subparsers.add_parser('sanity', help='Check DLP project for consistency',
+                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_sanity.add_argument('-w', '--wbs', default=DEFAULT_WBS, help='Limit results by WBS')
 parser_sanity.set_defaults(func=check_sanity)
 
