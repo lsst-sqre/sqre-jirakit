@@ -68,16 +68,28 @@ def get_unscheduled_milestones(issues):
             and (not hasattr(issue.fields, "fixVersions")
                  or not issue.fields.fixVersions)]
 
+def get_multiply_scheduled_milestones(issues):
+    # Return a list of keys of all Milestones which have more than one fixVersion defined.
+    return [key for key, issue in issues.iteritems()
+            if issue.fields.issuetype.name == "Milestone"
+            and hasattr(issue.fields, "fixVersions")
+            and len(issue.fields.fixVersions) > 2]
+
 def check_sanity(issues):
     errors = False
     issues = {issue.key: issue for issue in issues}
 
     # Check for unscheduled milestones
-    unscheduled = get_unscheduled_milestones(issues)
-    for key in unscheduled:
+    for key in get_unscheduled_milestones(issues):
         errors=True
         del issues[key] # Trim the issue so it doesn't break the bad blocks check
         print("%s is not scheduled in any cycle." % (key,))
+
+    # Check for milestones which are scheduled in more than one cycle
+    for key in get_multiply_scheduled_milestones(issues):
+        errors = True
+        print("%s scheduled in multiple cycles: %s." %
+              (key, ", ".join(v.name for v in issues[key].fields.fixVersions)))
 
     # Check for bad blocks
     bad_blocks = get_bad_blocks(issues)
