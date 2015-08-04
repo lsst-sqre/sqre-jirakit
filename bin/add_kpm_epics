@@ -1,4 +1,5 @@
-from lsst.daf.persistence import DbAuth
+#!/usr/bin/env python
+
 from jira.utils import JIRAError
 from jira import JIRA
 
@@ -42,34 +43,13 @@ def checkArguments(args, jiraInst):
         if not assignee == "":
             args.assignee = assignee
 
-def getCredentials(server):
-    """ Try a couple different approaches to getting Jira credentials
-    param[in] server  String specifying the location of the server.  If possible,
-                      the server string will be used to find the information necessary
-                      to use the DbAuth mechanism.  Otherwise failover to interactive
-                      input.
+def getCredentials():
+    """ Get Jira credentials.  Currently, this just asks for the username and password, but
+    I hope we can do this with OAuth in the future.
     returns username, password
     """
-    parsedUrl = urlparse.urlparse(server)
-    host = parsedUrl.netloc
-
-    if parsedUrl.port:
-        port = parsedUrl.port
-    elif parsedUrl.scheme == 'http':
-        port = '80'
-    elif parsedUrl.scheme == 'https':
-        port = '443'
-    else:
-        raise ValueError("Could not determin port to use for authentication lookup.  "\
-                "Scheme is %s"%parsedUrl.scheme)
-
-    try:
-        username = DbAuth.username(host, port)
-        password = DbAuth.password(host, port)
-    except:
-        warnings.warn("Could not find credentials using DbAuth.  Falling back to manual input.")
-        username = raw_input("Enter username: ")
-        password = raw_input("Enter Password: ")
+    username = raw_input("Enter username: ")
+    password = raw_input("Enter Password: ")
     return username, password
 
 def makeEpics(jiraInst, kpmId, team, wbs, assignee, unit, values, cycles, dryrun):
