@@ -22,7 +22,7 @@ def build_query(issue_types, wbs):
 def get_issues(server, query, max_results=MAX_RESULTS):
     return JIRA(dict(server=server)).search_issues(query, maxResults=max_results)
 
-def compare(a, b, ordering=cycles()):
+def compare(a, b, ordering=list(cycles())):
     # Returns negative if a appears before b in ordering, zero if a
     # and b are at the same position, positive if a is after b.
     return cmp(ordering.index(a), ordering.index(b))
