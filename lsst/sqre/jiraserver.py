@@ -5,6 +5,7 @@ import graphviz
 
 import os
 from contextlib import contextmanager
+from functools import partial
 from io import BytesIO
 from shutil import rmtree
 from tempfile import mkdtemp
@@ -29,6 +30,13 @@ def tempdir():
     finally:
         rmtree(dirname, ignore_errors=True)
 
+def render_text(query, generator):
+    output = BytesIO()
+    issues = get_issues(SERVER, query)
+    generator(issues, output=output)
+    output.seek(0)
+    return "<pre>%s</pre>" % (output.read(),)
+
 def build_server():
     @app.route('/wbs/<wbs>')
     def get_graph(wbs):
@@ -49,19 +57,12 @@ def build_server():
 
     @app.route('/wbs/csv/<wbs>')
     def get_csv(wbs):
-        output = BytesIO()
-        issues = get_issues(SERVER, build_query(("Milestone",), wbs))
-        jira2txt(issues, output=output, csv=True, show_key=True, show_title=True,
-                 url_base=urljoin(SERVER, "/browse/"))
-        output.seek(0)
-        return "<pre>%s</pre>" % output.read()
+        return render_text(build_query(("Milestone",), wbs),
+                           partial(jira2txt, csv=True, show_key=True, show_title=True,
+                                   url_base=urljoin(SERVER, "/browse")))
 
     @app.route('/wbs/tab/<wbs>')
     def get_tab(wbs):
-        output = BytesIO()
-        issues = get_issues(SERVER, build_query(("Milestone",), wbs))
-        jira2txt(issues, output=output, csv=False)
-        output.seek(0)
-        return "<pre>%s</pre>" % output.read()
+        return render_text(build_query(("Milestone",), wbs), partial(jira2txt, csv=False))
 
     return app
