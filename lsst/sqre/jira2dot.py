@@ -77,7 +77,8 @@ def jira2dot(server, query, file=sys.stdout, link_types=("Blocks",), attr_func=N
 
         # Use the issue description as the tooltip (mouseover text)
         if issue.fields.description:
-            tooltip = 'tooltip="{0}"'.format(issue.fields.description.replace('"', "'"))
+            description = "&#10;".join(issue.fields.description.replace('"', "'").split("\n"))
+            tooltip = 'tooltip="{0}"'.format(description)
         else:
             tooltip = 'tooltip="{0}"'.format(summary)
         attr.append(tooltip)
