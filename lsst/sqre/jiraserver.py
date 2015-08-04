@@ -6,14 +6,14 @@ import graphviz
 import os
 from contextlib import contextmanager
 from functools import partial
-from io import BytesIO
+from io import BytesIO, StringIO
 from shutil import rmtree
 from tempfile import mkdtemp
 from urlparse import urljoin
 
 from lsst.sqre.jira2dot import jira2dot, attr_func, rank_func
 from lsst.sqre.jira2txt import jira2txt
-from lsst.sqre.jirakit import build_query, cycles, get_issues, SERVER
+from lsst.sqre.jirakit import build_query, cycles, get_issues, SERVER, check_sanity
 
 app = flask.Flask(__name__)
 
@@ -31,11 +31,10 @@ def tempdir():
         rmtree(dirname, ignore_errors=True)
 
 def render_text(query, generator):
-    output = BytesIO()
+    output = StringIO()
     issues = get_issues(SERVER, query)
     generator(issues, output=output)
-    output.seek(0)
-    return "<pre>%s</pre>" % (output.read(),)
+    return "<pre>%s</pre>" % (output.getvalue(),)
 
 def build_server():
     @app.route('/wbs/<wbs>')
@@ -49,8 +48,7 @@ def build_server():
         dot = BytesIO()
         issues = get_issues(SERVER, build_query(("Milestone", "Meta-epic"), wbs))
         jira2dot(issues, file=dot, attr_func=attr_func, rank_func=rank_func, ranks=cycles())
-        dot.seek(0)
-        graph = graphviz.Source(dot.read(), format=fmt)
+        graph = graphviz.Source(dot.getvalue(), format=fmt)
         with tempdir() as dirname:
             image = graph.render("graph", cleanup=True, directory=dirname)
             return flask.send_file(os.path.join(dirname, "graph%s%s" % (os.path.extsep, fmt)))
@@ -64,5 +62,14 @@ def build_server():
     @app.route('/wbs/tab/<wbs>')
     def get_tab(wbs):
         return render_text(build_query(("Milestone",), wbs), partial(jira2txt, csv=False))
+
+    @app.route('/wbs/sanity/<wbs>')
+    def get_sanity(wbs):
+        def sanity_wrapper(issues, output):
+            result = check_sanity(issues, output)
+            if not result:
+                output.write(u"No errors found.")
+
+        return render_text(build_query(("Milestone",), wbs), sanity_wrapper)
 
     return app

@@ -81,22 +81,24 @@ def check_sanity(issues, output=sys.stdout):
     issues = {issue.key: issue for issue in issues}
 
     # Check for unscheduled milestones
-    for key in get_unscheduled_milestones(issues):
+    for key in sorted(get_unscheduled_milestones(issues)):
         errors=True
-        print("%s is not scheduled in any cycle." % (key,), file=output)
+        output.write("%s [%s] is not scheduled in any cycle.\n" % (key, issues[key].fields.customfield_10500))
         del issues[key] # Trim the issue so it doesn't break the bad blocks check
 
     # Check for milestones which are scheduled in more than one cycle
-    for key in get_multiply_scheduled_milestones(issues):
+    for key in sorted(get_multiply_scheduled_milestones(issues)):
         errors = True
-        print("%s scheduled in multiple cycles: %s." %
-              (key, ", ".join(v.name for v in issues[key].fields.fixVersions)), file=output)
+        output.write("%s [%s] scheduled in multiple cycles: %s.\n" %
+                     (key, issues[key].fields.customfield_10500,
+                      ", ".join(v.name for v in issues[key].fields.fixVersions)))
 
     # Check for bad blocks
     bad_blocks = get_bad_blocks(issues)
     for blocker, blocked in bad_blocks:
         errors = True
-        print("%s (%s) blocks %s (%s)." % (blocker, get_cycle(issues[blocker]),
-                                          blocked, get_cycle(issues[blocked])), file=output)
-
+        output.write("%s (%s) [%s] blocks %s (%s) [%s].\n" % (blocker, get_cycle(issues[blocker]),
+                                                              issues[blocker].fields.customfield_10500,
+                                                              blocked, get_cycle(issues[blocked]),
+                                                              issues[blocked].fields.customfield_10500))
     return errors

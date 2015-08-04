@@ -46,8 +46,11 @@ def jira2txt(issues, output=sys.stdout, csv=False, show_key=True, show_title=Fal
         table.append(row)
 
     if csv:
-        writer = DictWriter(output, fieldnames=table[0].keys())
+        import io
+        buf = io.BytesIO()
+        writer = DictWriter(buf, fieldnames=table[0].keys())
         writer.writeheader()
         writer.writerows(table)
+        output.write(buf.getvalue().decode('utf-8'))
     else:
-        print(str(tabulate(table, headers='keys', tablefmt='pipe')), file=output)
+        output.write(tabulate(table, headers='keys', tablefmt='pipe') + "\n")
