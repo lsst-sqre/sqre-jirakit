@@ -5,6 +5,7 @@ Module for helper apps relating to the LSST-DM reporting cycle
 
 from __future__ import print_function
 
+import sys
 import itertools
 from jira import JIRA
 
@@ -75,27 +76,27 @@ def get_multiply_scheduled_milestones(issues):
             and hasattr(issue.fields, "fixVersions")
             and len(issue.fields.fixVersions) > 2]
 
-def check_sanity(issues):
+def check_sanity(issues, output=sys.stdout):
     errors = False
     issues = {issue.key: issue for issue in issues}
 
     # Check for unscheduled milestones
     for key in get_unscheduled_milestones(issues):
         errors=True
+        print("%s is not scheduled in any cycle." % (key,), file=output)
         del issues[key] # Trim the issue so it doesn't break the bad blocks check
-        print("%s is not scheduled in any cycle." % (key,))
 
     # Check for milestones which are scheduled in more than one cycle
     for key in get_multiply_scheduled_milestones(issues):
         errors = True
         print("%s scheduled in multiple cycles: %s." %
-              (key, ", ".join(v.name for v in issues[key].fields.fixVersions)))
+              (key, ", ".join(v.name for v in issues[key].fields.fixVersions)), file=output)
 
     # Check for bad blocks
     bad_blocks = get_bad_blocks(issues)
     for blocker, blocked in bad_blocks:
         errors = True
         print("%s (%s) blocks %s (%s)." % (blocker, get_cycle(issues[blocker]),
-                                          blocked, get_cycle(issues[blocked])))
+                                          blocked, get_cycle(issues[blocked])), file=output)
 
     return errors
