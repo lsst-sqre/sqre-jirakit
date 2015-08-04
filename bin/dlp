@@ -29,7 +29,9 @@ def check_sanity(opts):
         sys.exit(1)
 
 def run_server(opts):
-    build_server().run(host=opts.host, port=opts.port)
+    app = build_server()
+    app.config['DEBUG'] = opts.debug
+    app.run(host=opts.host, port=opts.port)
 
 parser = argparse.ArgumentParser(epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -70,6 +72,7 @@ parser_serve = subparsers.add_parser('serve', help='Serve DLP project summaries 
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser_serve.add_argument('--host', default='0.0.0.0', help='Hostname on which to listen')
 parser_serve.add_argument('--port', default=8080, type=int, help='Port on which to listen')
+parser_serve.add_argument('--debug', action='store_true', help='Enable debugging mode in server')
 parser_serve.set_defaults(func=run_server)
 
 parser_sanity = subparsers.add_parser('sanity', help='Check DLP project for consistency',
