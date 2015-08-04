@@ -3,7 +3,13 @@ from __future__ import print_function
 import sys
 from csv import DictWriter
 from collections import OrderedDict
-from urlparse import urljoin
+from contextlib import contextmanager
+try:
+    # Python 3
+    from urllib.parse import urljoin
+except ImportError:
+    # Python 2
+    from urlparse import urljoin
 
 from tabulate import tabulate
 from jira import JIRA
@@ -46,11 +52,23 @@ def jira2txt(issues, output=sys.stdout, csv=False, show_key=True, show_title=Fal
         table.append(row)
 
     if csv:
-        import io
-        buf = io.BytesIO()
-        writer = DictWriter(buf, fieldnames=table[0].keys())
-        writer.writeheader()
-        writer.writerows(table)
-        output.write(buf.getvalue().decode('utf-8'))
+        @contextmanager
+        def switch_buffer(output):
+            # In Python 2, DictWriter wants to write to a buffer of bytes. In
+            # Python3, it wants to write to a buffer of unicode. Here, we swap
+            # buffer types depending on version.
+            if sys.version_info[0] == 2:
+                import io
+                buf = io.BytesIO()
+            else:
+                buf = output
+            yield buf
+            if sys.version_info[0] == 2:
+                output.write(buf.getvalue().decode('utf-8'))
+
+        with switch_buffer(output) as buf:
+            writer = DictWriter(buf, fieldnames=table[0].keys())
+            writer.writeheader()
+            writer.writerows(table)
     else:
         output.write(tabulate(table, headers='keys', tablefmt='pipe') + "\n")

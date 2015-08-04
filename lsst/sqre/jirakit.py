@@ -25,7 +25,12 @@ def get_issues(server, query, max_results=MAX_RESULTS):
 def compare(a, b, ordering=list(cycles())):
     # Returns negative if a appears before b in ordering, zero if a
     # and b are at the same position, positive if a is after b.
-    return cmp(ordering.index(a), ordering.index(b))
+    if ordering.index(a) < ordering.index(b):
+        return -1
+    elif ordering.index(a) == ordering.index(b):
+        return 0
+    else:
+        return 1
 
 def get_cycle(issue):
     # Return the name of the first entry in the fixVersions field of issue.
@@ -57,21 +62,21 @@ def get_bad_blocks(issues, compare_fn=compare):
     # the set of issues, where a "bad block" is defined as the blocked issue
     # being scheduled for a cycle earlier than its blocker.
     return [(blocker_key, blocked_key)
-            for blocker_key, blocker in issues.iteritems()
+            for blocker_key, blocker in issues.items()
             for blocked_key in get_dependents(blocker_key, issues)
             if blocker.fields.issuetype.name == "Milestone"
             and not good_block(blocker, issues[blocked_key], compare_fn)]
 
 def get_unscheduled_milestones(issues):
     # Return a list of keys of all Milestones which do not have a fixVersion defined.
-    return [key for key, issue in issues.iteritems()
+    return [key for key, issue in issues.items()
             if issue.fields.issuetype.name == "Milestone"
             and (not hasattr(issue.fields, "fixVersions")
                  or not issue.fields.fixVersions)]
 
 def get_multiply_scheduled_milestones(issues):
     # Return a list of keys of all Milestones which have more than one fixVersion defined.
-    return [key for key, issue in issues.iteritems()
+    return [key for key, issue in issues.items()
             if issue.fields.issuetype.name == "Milestone"
             and hasattr(issue.fields, "fixVersions")
             and len(issue.fields.fixVersions) > 2]

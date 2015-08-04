@@ -6,10 +6,16 @@ import graphviz
 import os
 from contextlib import contextmanager
 from functools import partial
-from io import BytesIO, StringIO
+from io import StringIO
 from shutil import rmtree
 from tempfile import mkdtemp
-from urlparse import urljoin
+
+try:
+    # Python 3
+    from urllib.parse import urljoin
+except ImportError:
+    # Python 2
+    from urlparse import urljoin
 
 from lsst.sqre.jira2dot import jira2dot, attr_func, rank_func
 from lsst.sqre.jira2txt import jira2txt
@@ -45,7 +51,7 @@ def build_server():
     def get_formatted_graph(fmt, wbs):
         if fmt not in FMTS:
             flask.abort(404)
-        dot = BytesIO()
+        dot = StringIO()
         issues = get_issues(SERVER, build_query(("Milestone", "Meta-epic"), wbs))
         jira2dot(issues, file=dot, attr_func=attr_func, rank_func=rank_func, ranks=cycles())
         graph = graphviz.Source(dot.getvalue(), format=fmt)
