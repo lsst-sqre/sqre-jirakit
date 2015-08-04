@@ -54,12 +54,31 @@ def get_bad_blocks(issues, compare_fn=compare):
             if blocker.fields.issuetype.name == "Milestone"
             and not good_block(blocker, issues[blocked_key], compare_fn)]
 
+def get_unscheduled_milestones(issues):
+    # Return a list of keys of all Milestones which do not have a fixVersion defined.
+    return [key for key, issue in issues.iteritems()
+            if issue.fields.issuetype.name == "Milestone"
+            and (not hasattr(issue.fields, "fixVersions")
+                 or not issue.fields.fixVersions)]
+
 if __name__ == "__main__":
     issues = get_issues(build_query(("Milestone", "Meta-epic"), "02C*"),
                         JIRA(dict(server=SERVER)))
+    found_errors = False
+
+    # Check for unscheduled milestones
+    unscheduled = get_unscheduled_milestones(issues)
+    for key in unscheduled:
+        found_errors=True
+        del issues[key] # Trim the issue so it doesn't break the bad blocks check
+        print("%s is not scheduled in any cycle." % (key,))
+
+    # Check for bad blocks
     bad_blocks = get_bad_blocks(issues)
-    if bad_blocks:
-        for blocker, blocked in bad_blocks:
-            print("%s (%s) blocks %s (%s)" % (blocker, get_cycle(issues[blocker]),
-                                              blocked, get_cycle(issues[blocked])))
+    for blocker, blocked in bad_blocks:
+        found_errors = True
+        print("%s (%s) blocks %s (%s)." % (blocker, get_cycle(issues[blocker]),
+                                          blocked, get_cycle(issues[blocked])))
+
+    if found_errors:
         sys.exit(1)

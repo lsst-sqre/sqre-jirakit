@@ -45,13 +45,18 @@ dlp-sanity
 ----------
 
 Checks the DLP JIRA project for consistency. At present, this means it
-identifies any "bad" blocking relationships, where a blocked Milestone is
-scheduled to take place in an earlier cycle than the Milestone or Meta-epics
-which are blocking it. This is smart enough to follow chains of blocks (ie, if
-A blocks B and B blocks C, A is regarded as blocking C), but the current
-implementation does not report intermediate issues (thus the above
-relationship is simply reported as "A blocks C"); use e.g. dlp-graph (above)
-to identify these where necessary.
+identifies:
+
+* Milestones which are not scheduled for a particular release ("fixVersion");
+* "Bad" blocking relationships.
+
+Bad blocks are those in which a blocked Milestone is scheduled to take place
+in an earlier cycle than the Milestone or Meta-epics which are blocking it.
+This is smart enough to follow chains of blocks (ie, if A blocks B and B
+blocks C, A is regarded as blocking C), but the current implementation does
+not report intermediate issues (thus the above relationship is simply reported
+as "A blocks C"); use e.g. dlp-graph (above) to identify these where
+necessary.
 
 No options necessary simply run `dlp-sanity`. Returns 0 if no problems are
 detected; prints a list of bad blocks and exits with status 1 otherwise.
