@@ -19,7 +19,7 @@ except ImportError:
 
 from lsst.sqre.jira2dot import jira2dot, attr_func, rank_func
 from lsst.sqre.jira2txt import jira2txt
-from lsst.sqre.jirakit import build_query, cycles, get_issues, SERVER, check_sanity
+from lsst.sqre.jirakit import build_query, cycles, get_issues, check_sanity
 
 app = flask.Flask(__name__)
 
@@ -36,13 +36,13 @@ def tempdir():
     finally:
         rmtree(dirname, ignore_errors=True)
 
-def render_text(query, generator):
+def render_text(server, query, generator):
     output = StringIO()
-    issues = get_issues(SERVER, query)
+    issues = get_issues(server, query)
     generator(issues, output=output)
     return "<pre>%s</pre>" % (output.getvalue(),)
 
-def build_server():
+def build_server(server):
     @app.route('/wbs/<wbs>')
     def get_graph(wbs):
         return flask.redirect(flask.url_for("get_formatted_graph", wbs=wbs, fmt=DEFAULT_FMT))
@@ -52,7 +52,7 @@ def build_server():
         if fmt not in FMTS:
             flask.abort(404)
         dot = StringIO()
-        issues = get_issues(SERVER, build_query(("Milestone", "Meta-epic"), wbs))
+        issues = get_issues(server, build_query(("Milestone", "Meta-epic"), wbs))
         jira2dot(issues, file=dot, attr_func=attr_func, rank_func=rank_func, ranks=cycles())
         graph = graphviz.Source(dot.getvalue(), format=fmt)
         with tempdir() as dirname:
@@ -61,13 +61,13 @@ def build_server():
 
     @app.route('/wbs/csv/<wbs>')
     def get_csv(wbs):
-        return render_text(build_query(("Milestone",), wbs),
+        return render_text(server, build_query(("Milestone",), wbs),
                            partial(jira2txt, csv=True, show_key=True, show_title=True,
-                                   url_base=urljoin(SERVER, "/browse")))
+                                   url_base=urljoin(server, "/browse")))
 
     @app.route('/wbs/tab/<wbs>')
     def get_tab(wbs):
-        return render_text(build_query(("Milestone",), wbs), partial(jira2txt, csv=False))
+        return render_text(server, build_query(("Milestone",), wbs), partial(jira2txt, csv=False))
 
     @app.route('/wbs/sanity/<wbs>')
     def get_sanity(wbs):
@@ -76,6 +76,6 @@ def build_server():
             if not result:
                 output.write(u"No errors found.")
 
-        return render_text(build_query(("Milestone",), wbs), sanity_wrapper)
+        return render_text(server, build_query(("Milestone",), wbs), sanity_wrapper)
 
     return app

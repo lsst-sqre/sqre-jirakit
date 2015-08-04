@@ -29,7 +29,7 @@ def check_sanity(opts):
         sys.exit(1)
 
 def run_server(opts):
-    app = build_server()
+    app = build_server(opts.server)
     app.config['DEBUG'] = opts.debug
     app.run(host=opts.host, port=opts.port)
 
