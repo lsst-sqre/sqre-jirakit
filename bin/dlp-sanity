@@ -7,7 +7,6 @@ from lsst.sqre.jirakit import SERVER, cycles, build_query
 from jira import JIRA
 
 QUERY = 'project = DLP AND issuetype in (Milestone, "Meta-epic")'
-MAX_RESULTS = 1000
 
 def compare(a, b, ordering=cycles()):
     # Returns negative if a appears before b in ordering, zero if a
@@ -17,7 +16,7 @@ def compare(a, b, ordering=cycles()):
 def get_issues(query, jiraConn):
     # Construct a mapping from Id to milestone for all milestones
     # which satisfy QUERY.
-    return {issue.key: issue for issue in jiraConn.search_issues(query, maxResults=MAX_RESULTS)}
+    return {issue.key: issue for issue in jiraConn.search_issues(query, maxResults=None)}
 
 def get_cycle(issue):
     # Return the name of the first entry in the fixVersions field of issue.

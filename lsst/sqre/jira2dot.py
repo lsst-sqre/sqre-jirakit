@@ -40,7 +40,7 @@ def jira2dot(server, query, file=sys.stdout, link_types=("Blocks",), attr_func=N
     by_key = {}
     by_rank = {}
 
-    for item in jira.search_issues(query, maxResults=1000):
+    for item in jira.search_issues(query, maxResults=None):
         issue = jira.issue(item)
         by_key[issue.key] = issue
 

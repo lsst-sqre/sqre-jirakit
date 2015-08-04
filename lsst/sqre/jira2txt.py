@@ -21,7 +21,7 @@ def jira2txt(server, query, output=sys.stdout, csv=False, show_key=True, show_ti
     jira = JIRA(dict(server=server))
 
     table = []
-    for issue in jira.search_issues(query, maxResults=1000):
+    for issue in jira.search_issues(query, maxResults=None):
         if not issue.fields.fixVersions:
             print('No release assigned to', issue.key, file=sys.stderr)
             continue
