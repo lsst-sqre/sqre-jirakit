@@ -13,6 +13,8 @@ DEFAULT_WBS = "02*"
 
 def generate_txt(opts):
     issues = jirakit.get_issues(opts.server, jirakit.build_query(('Milestone',), opts.wbs))
+    if not hasattr(opts, "no_url"):
+        opts.no_url = True
     return jira2txt(issues, csv=True if opts.mode == "csv" else False, show_key=not opts.no_key,
                     show_title=opts.title, url_base = '' if opts.no_url else opts.server + "browse/")
 
@@ -58,8 +60,6 @@ parser_tab.add_argument('-t', '--title', action='store_true', default=False,
                         help='Show the JIRA issue title in the table cell (can combine with -k)')
 parser_tab.add_argument('--no-key', action='store_true',
                         help='Do not show the JIRA issue key in the table cell')
-parser_tab.add_argument('--no-url', action='store_true', default=False,
-                        help='Do not include hyperlinks in CSV outputput')
 parser_tab.add_argument('-w', '--wbs', default=DEFAULT_WBS, help='Limit results by WBS')
 parser_tab.set_defaults(func=generate_txt)
 
