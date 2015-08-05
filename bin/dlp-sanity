@@ -8,7 +8,7 @@ from jira import JIRA
 
 QUERY = 'project = DLP AND issuetype in (Milestone, "Meta-epic")'
 
-def compare(a, b, ordering=cycles()):
+def compare(a, b, ordering=list(cycles())):
     # Returns negative if a appears before b in ordering, zero if a
     # and b are at the same position, positive if a is after b.
     return cmp(ordering.index(a), ordering.index(b))
