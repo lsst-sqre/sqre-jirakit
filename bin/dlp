@@ -54,6 +54,7 @@ parser.add_argument('-s', '--server', default=jirakit.SERVER)
 parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
 
 subparsers = parser.add_subparsers(dest="mode")
+subparsers.required = True # http://stackoverflow.com/questions/23349349/argparse-with-required-subparser
 
 parser_csv = subparsers.add_parser('csv', help='Generate CSV output',
                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
