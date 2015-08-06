@@ -65,9 +65,7 @@ def build_server(server):
     @app.route('/wbs/sanity/<wbs>')
     def get_sanity(wbs):
         def sanity_wrapper(issues):
-            result = check_sanity(issues)
-            if not result:
-                return "No errors found."
+            return check_sanity(issues) or "No errors found."
 
         return render_text(server, build_query(("Milestone",), wbs), sanity_wrapper)
 
