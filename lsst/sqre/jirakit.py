@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import sys
 import itertools
+from io import StringIO
 from jira import JIRA
 
 SERVER="https://jira.lsstcorp.org/"
@@ -81,8 +82,8 @@ def get_multiply_scheduled_milestones(issues):
             and hasattr(issue.fields, "fixVersions")
             and len(issue.fields.fixVersions) > 2]
 
-def check_sanity(issues, output=sys.stdout):
-    errors = False
+def check_sanity(issues):
+    output = StringIO()
     issues = {issue.key: issue for issue in issues}
 
     # Check for unscheduled milestones
@@ -93,7 +94,6 @@ def check_sanity(issues, output=sys.stdout):
 
     # Check for milestones which are scheduled in more than one cycle
     for key in sorted(get_multiply_scheduled_milestones(issues)):
-        errors = True
         output.write("%s [%s] scheduled in multiple cycles: %s.\n" %
                      (key, issues[key].fields.customfield_10500,
                       ", ".join(v.name for v in issues[key].fields.fixVersions)))
@@ -101,9 +101,8 @@ def check_sanity(issues, output=sys.stdout):
     # Check for bad blocks
     bad_blocks = get_bad_blocks(issues)
     for blocker, blocked in bad_blocks:
-        errors = True
         output.write("%s (%s) [%s] blocks %s (%s) [%s].\n" % (blocker, get_cycle(issues[blocker]),
                                                               issues[blocker].fields.customfield_10500,
                                                               blocked, get_cycle(issues[blocked]),
                                                               issues[blocked].fields.customfield_10500))
-    return errors
+    return output.getvalue()

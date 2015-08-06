@@ -1,9 +1,11 @@
 from __future__ import print_function
 
+import io
 import sys
 from csv import DictWriter
 from collections import OrderedDict
 from contextlib import contextmanager
+
 try:
     # Python 3
     from urllib.parse import urljoin
@@ -16,7 +18,7 @@ from jira import JIRA
 
 from lsst.sqre.jirakit import cycles
 
-def jira2txt(issues, output=sys.stdout, csv=False, show_key=True, show_title=False, url_base=''):
+def jira2txt(issues, csv=False, show_key=True, show_title=False, url_base=''):
     def makeRow(wbs, cycles, blank=None):
         row = OrderedDict()
         row['WBS'] = wbs
@@ -52,23 +54,15 @@ def jira2txt(issues, output=sys.stdout, csv=False, show_key=True, show_title=Fal
         table.append(row)
 
     if csv:
-        @contextmanager
-        def switch_buffer(output):
-            # In Python 2, DictWriter wants to write to a buffer of bytes. In
-            # Python3, it wants to write to a buffer of unicode. Here, we swap
-            # buffer types depending on version.
-            if sys.version_info[0] == 2:
-                import io
-                buf = io.BytesIO()
-            else:
-                buf = output
-            yield buf
-            if sys.version_info[0] == 2:
-                output.write(buf.getvalue().decode('utf-8'))
-
-        with switch_buffer(output) as buf:
-            writer = DictWriter(buf, fieldnames=table[0].keys())
-            writer.writeheader()
-            writer.writerows(table)
+        # In Python 2, DictWriter wants to write to a buffer of bytes. In
+        # Python 3, it wants to write to a buffer of unicode.
+        if sys.version_info[0] == 2:
+            buf = io.BytesIO()
+        else:
+            buf = io.StringIO()
+        writer = DictWriter(buf, fieldnames=table[0].keys())
+        writer.writeheader()
+        writer.writerows(table)
+        return buf.getvalue()
     else:
-        output.write(tabulate(table, headers='keys', tablefmt='pipe') + "\n")
+        return tabulate(table, headers='keys', tablefmt='pipe')
