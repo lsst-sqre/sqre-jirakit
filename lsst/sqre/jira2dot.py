@@ -5,7 +5,13 @@ from io import StringIO
 
 def attr_func(issue):
     if issue.fields.issuetype.name == "Milestone":
-        return 'style="rounded,filled";fillcolor="powderblue"',
+        if issue.fields.resolution and issue.fields.resolution.name == "Done":
+            return 'style="rounded,filled";fillcolor="palegreen"',
+        else:
+            return 'style="rounded,filled";fillcolor="powderblue"',
+    if (issue.fields.issuetype.name == "Meta-epic" and issue.fields.resolution and
+        issue.fields.resolution.name == "Done"):
+        return 'style="filled";fillcolor="seashell2"',
     else:
         return ()
 
