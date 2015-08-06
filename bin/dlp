@@ -3,7 +3,6 @@
 from __future__ import print_function
 import argparse
 import sys
-import textwrap
 
 import lsst.sqre.jirakit as jirakit
 from lsst.sqre.jira2txt import jira2txt
@@ -25,14 +24,15 @@ def generate_txt(opts):
     issues = jirakit.get_issues(opts.server, jirakit.build_query(('Milestone',), opts.wbs))
     if not hasattr(opts, "no_url"):
         opts.no_url = True
-    print(jira2txt(issues, csv=True if opts.mode == "csv" else False, show_key=not opts.no_key,
-                    show_title=opts.title, url_base = '' if opts.no_url else opts.server + "browse/"))
+    print(jira2txt(issues, csv=True if opts.mode == "csv" else False,
+                   show_key=not opts.no_key, show_title=opts.title,
+                   url_base=('' if opts.no_url else opts.server + "browse/")))
 
 def generate_dot(opts):
     issues = jirakit.get_issues(opts.server,
                                 jirakit.build_query(('Milestone', 'Meta-epic'), opts.wbs))
     print(jira2dot(issues, attr_func=attr_func, diag_name="DLP Roadmap",
-                        rank_func=rank_func, ranks=jirakit.cycles()))
+                   rank_func=rank_func, ranks=jirakit.cycles()))
 
 def check_sanity(opts):
     issues = jirakit.get_issues(opts.server,
@@ -54,7 +54,8 @@ parser.add_argument('-s', '--server', default=jirakit.SERVER)
 parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
 
 subparsers = parser.add_subparsers(dest="mode")
-subparsers.required = True # http://stackoverflow.com/questions/23349349/argparse-with-required-subparser
+# http://stackoverflow.com/questions/23349349/argparse-with-required-subparser
+subparsers.required = True
 
 parser_csv = subparsers.add_parser('csv', help='Generate CSV output',
                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
