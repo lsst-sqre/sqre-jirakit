@@ -20,7 +20,6 @@ def jira2dot(issues, link_types=("Blocks",), attr_func=None, rank_func=None,
 
     Arguments:
       issues ---------------- Iterable of issues to process
-      file ------------------ Python file-like object to write output to
       link_types ------------ Sequence of link types to include in the graph
       attr_func ------------- Callback function that takes a jira.Issue object and returns a sequence
                               of GraphViz attribute key/value pairs (e.g. "shape=box")
