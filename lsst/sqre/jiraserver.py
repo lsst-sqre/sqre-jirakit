@@ -55,7 +55,8 @@ def build_server(server):
     def get_csv(wbs):
         return render_text(server, build_query(("Milestone",), wbs),
                            partial(jira2txt, csv=True, show_key=True, show_title=True,
-                                   url_base=urljoin(server, "/browse")))
+                                   url_base=(urljoin(server, "/browse") if
+                                             flask.request.args.get('link') else "")))
 
     @app.route('/wbs/tab/<wbs>')
     def get_tab(wbs):

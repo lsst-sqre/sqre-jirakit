@@ -84,6 +84,9 @@ Use the `--debug` option to start the server in debug mode, which will provide
 more information (in terms of stack traces etc) if things go wrong, but should
 likely not be exposed to the public internet.
 
+In `csv` mode, appending the string `link=yes` to the URL will embed
+hyperlinks in the output.
+
 #### `sanity`
 
 Checks the DLP JIRA project for consistency. At present, this means it
