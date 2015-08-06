@@ -39,10 +39,7 @@ def render_text(server, query, generator):
     return "<pre>%s</pre>" % (generator(get_issues(server, query)))
 
 def build_server(server):
-    @app.route('/wbs/<wbs>')
-    def get_graph(wbs):
-        return flask.redirect(flask.url_for("get_formatted_graph", wbs=wbs, fmt=DEFAULT_FMT))
-
+    @app.route('/wbs/<wbs>', defaults={'fmt': DEFAULT_FMT})
     @app.route('/wbs/<fmt>/<wbs>')
     def get_formatted_graph(fmt, wbs):
         if fmt not in FMTS:
