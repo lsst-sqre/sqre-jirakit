@@ -61,6 +61,13 @@ necessary.
 No options necessary simply run `dlp-sanity`. Returns 0 if no problems are
 detected; prints a list of bad blocks and exits with status 1 otherwise.
 
+dlp-omniplan
+------------
+
+Extract milestones & meta-epics from one or more WBS elements in JIRA-DLP and
+write the out in a CSV form suitable for importing into
+[OmniPlan](https://www.omnigroup.com/omniplan).
+
 Known Bugs etc
 ==============
 
