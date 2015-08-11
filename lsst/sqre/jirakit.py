@@ -18,8 +18,12 @@ def cycles(seasons=['W', 'S'], years=range(14, 22)):
             if not (s == 'W' and y == 14)]
 
 def build_query(issue_types, wbs):
-    return ('project = DLP AND issuetype in (%s) AND wbs ~ "%s"'
-            'ORDER BY wbs ASC, fixVersion DESC' % (", ".join(issue_types), wbs))
+    if wbs is None:
+        return ('project = DLP AND issuetype in (%s) '
+                'ORDER BY key ASC, fixVersion DESC' % (", ".join(issue_types)))
+    else:
+        return ('project = DLP AND issuetype in (%s) AND wbs ~ "%s"'
+                'ORDER BY wbs ASC, fixVersion DESC' % (", ".join(issue_types), wbs))
 
 def basic_auth_from_file(auth_file_path=None):
     """Get basic auth from a two line file.
@@ -46,6 +50,14 @@ def get_issue_links(issue, linkTypeName=None):
 def get_issues(server, query, max_results=MAX_RESULTS):
     return JIRA(dict(server=server)).search_issues(query,
                                                    maxResults=max_results)
+
+def get_issues_by_key(server, keys):
+    # Given an iterable of issue keys (DM-1234, DLP-543)
+    # return all in a list. Currently there may be issues if the key list
+    # is extremely long.
+    # convert the list to an "in" query
+    query = "issuekey in (" + " ,".join(keys) + ")"
+    return get_issues(server, query, max_results=None)
 
 def compare(a, b, ordering=list(cycles())):
     # Returns negative if a appears before b in ordering, zero if a
