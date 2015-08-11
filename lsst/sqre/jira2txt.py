@@ -33,7 +33,7 @@ def jira2txt(issues, csv=False, show_key=True, show_title=False, url_base=''):
             continue
         cyc = issue.fields.fixVersions[0].name
 
-        if issue.fields.customfield_10500:
+        if hasattr(issue.fields, "customfield_10500") and issue.fields.customfield_10500:
             WBS = issue.fields.customfield_10500
         else:
             WBS = 'None'
