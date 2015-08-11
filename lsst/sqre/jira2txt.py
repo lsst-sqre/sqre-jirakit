@@ -1,16 +1,24 @@
 from __future__ import print_function
 
+import io
 import sys
 from csv import DictWriter
 from collections import OrderedDict
+from contextlib import contextmanager
+
+try:
+    # Python 3
+    from urllib.parse import urljoin
+except ImportError:
+    # Python 2
+    from urlparse import urljoin
 
 from tabulate import tabulate
 from jira import JIRA
 
 from lsst.sqre.jirakit import cycles
 
-
-def jira2txt(server, query, output=sys.stdout, csv=False, show_key=True, show_title=False, show_url=True):
+def jira2txt(issues, csv=False, show_key=True, show_title=False, url_base=''):
     def makeRow(wbs, cycles, blank=None):
         row = OrderedDict()
         row['WBS'] = wbs
@@ -18,10 +26,8 @@ def jira2txt(server, query, output=sys.stdout, csv=False, show_key=True, show_ti
             row[cycle] = blank
         return row
 
-    jira = JIRA(dict(server=server))
-
     table = []
-    for issue in jira.search_issues(query, maxResults=None):
+    for issue in issues:
         if not issue.fields.fixVersions:
             print('No release assigned to', issue.key, file=sys.stderr)
             continue
@@ -38,18 +44,25 @@ def jira2txt(server, query, output=sys.stdout, csv=False, show_key=True, show_ti
             row[cyc] = issue.key + ': ' + issue.fields.summary
         elif show_title:
             row[cyc] = issue.fields.summary
-        else:
+        elif show_key:
             row[cyc] = issue.key
 
         # In CSV mode we can include a URL to the actual issue
-        if csv and show_url:
-            row[cyc] = '=HYPERLINK("{}","{}")'.format(server + "/browse/" + issue.key, row[cyc])
+        if csv and url_base:
+            row[cyc] = '=HYPERLINK("{}","{}")'.format(urljoin(url_base, issue.key), row[cyc])
 
         table.append(row)
 
     if csv:
-        writer = DictWriter(output, fieldnames=table[0].keys())
+        # In Python 2, DictWriter wants to write to a buffer of bytes. In
+        # Python 3, it wants to write to a buffer of unicode.
+        if sys.version_info[0] == 2:
+            buf = io.BytesIO()
+        else:
+            buf = io.StringIO()
+        writer = DictWriter(buf, fieldnames=table[0].keys())
         writer.writeheader()
         writer.writerows(table)
+        return buf.getvalue()
     else:
-        print(str(tabulate(table, headers='keys', tablefmt='pipe')), file=output)
+        return tabulate(table, headers='keys', tablefmt='pipe')
