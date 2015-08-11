@@ -14,7 +14,7 @@ class JiraKitTest(unittest.TestCase):
     def testCycle(self):
 
         c = jirakit.cycles()
-        self.assertEqual(next(c), 'S14')
+        self.assertEqual(c[0], 'S14')
 
 if __name__ == '__main__':
     unittest.main()
