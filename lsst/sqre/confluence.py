@@ -1,6 +1,11 @@
 """
 Module for Confluence text processing.
 """
+try:
+    # Python 3
+    from itertools import zip_longest
+except ImportError:
+    from itertools import izip_longest as zip_longest
 
 def bold(text):
     """Make Confluence bold text.
@@ -46,7 +51,7 @@ def table(headings, *columns, **kwargs):
             row.append("|")
         table.append(" ".join(row))
     else:
-        for colvals in itertools.izip_longest(*columns, fillvalue=" "):
+        for colvals in zip_longest(*columns, fillvalue=" "):
             row = ["|"]
             for colval in colvals:
                 row.append(colval)
