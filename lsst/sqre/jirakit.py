@@ -6,6 +6,7 @@ Module for helper apps relating to the LSST-DM reporting cycle and LSST-SIMS wor
 from __future__ import print_function
 
 import sys
+import re
 from io import StringIO
 from jira import JIRA
 
@@ -150,3 +151,13 @@ def check_sanity(issues):
 
     return output.getvalue()
 
+def dm_to_dlp_cycle(dmcycle):
+    # DM project uses "Summer 2016"
+    # DLP project uses S16
+    matcher = re.compile(r"([SW])\w+\s\d*(\d\d)$")
+    matched = matcher.search(str(dmcycle))
+    if matched:
+        parts = matched.groups()
+        return "{0}{1}".format(*parts)
+    else:
+        raise ValueError("Supplied cycle {} is none-standard".format(dmcycle))

@@ -2,100 +2,35 @@
 
 from __future__ import print_function
 import argparse
-import sys
-import re
-from collections import OrderedDict
-
-from tabulate import tabulate
 
 import lsst.sqre.jirakit as jirakit
+import lsst.sqre.jira2txt as j2txt
 
 parser = argparse.ArgumentParser(epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('-s', '--server', default=jirakit.SERVER)
 parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
+
+subparsers = parser.add_subparsers(dest="mode")
+# http://stackoverflow.com/questions/23349349/argparse-with-required-subparser
+subparsers.required = True
+
+parser_csv = subparsers.add_parser('csv', help='Generate CSV output',
+                                   formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_csv.add_argument('--no-url', action='store_true', default=False,
+                        help='Do not include hyperlinks in CSV output')
+
+parser_tab = subparsers.add_parser('tab', help='Generate tabular output',
+                                   formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
 opts = parser.parse_args()
+
+if not hasattr(opts, "no_url"):
+    opts.no_url = True
 
 issues = jirakit.get_issues(opts.server, jirakit.build_query(('"Key Metric"',), None))
 
-# JIRA fields lookup for DM/DLP project:
-#  customfield_10900: cycle
-#  customfield_11000: metric
-#  customfield_11001: units
-
-def dump_custom(issue):
-    for f in dir(issue.fields):
-        if f.startswith("custom"):
-            print("{} {}: {}".format(issue, f, getattr(issue.fields, f)))
-
-def dump_issue(issue):
-    for f in dir(issue):
-        if not f.startswith("_"):
-            print("{} {}: {}".format(issue, f, getattr(issue, f)))
-
-def make_row(kpm, blank=None):
-    row = OrderedDict()
-    row['KPM'] = kpm.key
-    row['Title'] = kpm.fields.summary
-    row['Target'] = "{} {}".format(kpm.fields.customfield_11000,
-                                   kpm.fields.customfield_11001)
-    for cycle in jirakit.cycles():
-        row[cycle] = blank
-    return row
-
-def dm_to_dlp_cycle(dmcycle):
-    # DM project uses "Summer 2016"
-    # DLP project uses S16
-    matcher = re.compile(r"([SW])\w+\s\d*(\d\d)$")
-    matched = matcher.search(str(dmcycle))
-    if matched:
-        parts = matched.groups()
-        return "{0}{1}".format(*parts)
-    else:
-        raise ValueError("Supplied cycle {} is none-standard".format(dmcycle))
-
-# For each KPM we need to request the "Relates to" issues.
-table = []
-for i in issues:
-    relates = []
-    metric_target = i.fields.customfield_11000
-    metric_unit = str(i.fields.customfield_11001)
-
-    duplicates = False
-    for link in i.fields.issuelinks:
-        if link.type.name == "Relates":
-            if hasattr(link, "outwardIssue"):
-                relates.append(link.outwardIssue.key)
-            elif hasattr(link, "inwardIssue"):
-                relates.append(link.inwardIssue.key)
-        elif link.type.name == "Duplicate":
-            # If this has a Duplicates link we should not be reporting the KPM
-            duplicates = True
-            break
-
-    if duplicates:
-        continue
-
-    row = make_row(i)
-
-    if len(relates):
-        related_issues = jirakit.get_issues_by_key(opts.server, relates)
-        for dm in related_issues:
-            if not hasattr(dm.fields, "customfield_10900"):
-                print("Cycle missing from {} via {}".format(dm, i))
-                break
-            cyc = dm.fields.customfield_10900
-            if cyc is None:
-                print("Cycle missing from {} via {}".format(dm, i))
-                break
-            cyc = dm_to_dlp_cycle(cyc)
-            row[cyc] = dm.fields.customfield_11000
-            if str(dm.fields.customfield_11001) != metric_unit:
-                print("{}: Unit mismatch between DLP KPM and {} ({} != {})".format(i, dm, metric_unit,
-                                                                                   dm.fields.customfield_11001))
-
-    table.append(row)
-
-print(tabulate(table, headers='keys', tablefmt='pipe'))
-
+print(j2txt.jirakpm2txt(issues, opts.server,
+                        csv=True if opts.mode == "csv" else False,
+                        url_base=('' if opts.no_url else opts.server + "browse")))
