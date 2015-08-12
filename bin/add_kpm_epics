@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 from jira.utils import JIRAError
 from jira import JIRA
 
@@ -100,9 +101,9 @@ def makeEpics(jiraInst, kpmId, team, wbs, assignee, unit, values, cycles, dryrun
 
             #Issue links need to be made sepavrately
             jiraInst.create_issue_link(type="Relates", inwardIssue=new_issue.key, outwardIssue=kpmId)
-            print "Created Epic: %s"%(new_issue.key)
+            print("Created Epic: %s" % (new_issue.key))
         else:
-            print textwrap.dedent("""
+            print(textwrap.dedent("""
             *****************************
             Epic Title: %s
             Epic Summary: %s
@@ -112,7 +113,7 @@ def makeEpics(jiraInst, kpmId, team, wbs, assignee, unit, values, cycles, dryrun
             Metric unit: %s
             Team: %s
             Cycle: %s
-            *****************************\n"""%(epic_name, summary, assignee, wbs, value, unit, team, cycle))
+            *****************************\n""" % (epic_name, summary, assignee, wbs, value, unit, team, cycle)))
 
 if __name__ == '__main__':
     description = """
@@ -128,7 +129,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('team', type=str, help='Team to associate with each Epic.')
-    parser.add_argument('kpmId', type=str, 
+    parser.add_argument('kpmId', type=str,
                         help='This is the name of the DLP issue that points to this KPM: e.g. DLP-314')
     parser.add_argument('wbs', type=str, help='WBS to assign to epic.')
     parser.add_argument('--unit', type=str, help='Units of the value, e.g. arcseconds')
