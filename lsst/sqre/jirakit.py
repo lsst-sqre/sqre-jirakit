@@ -5,18 +5,19 @@ Module for helper apps relating to the LSST-DM reporting cycle and LSST-SIMS wor
 
 from __future__ import print_function
 
-import sys
 import re
 from io import StringIO
 from jira import JIRA
 
 SERVER = "https://jira.lsstcorp.org/"
-MAX_RESULTS = None # Fetch all results
+MAX_RESULTS = None  # Fetch all results
+
 
 def cycles(seasons=['W', 'S'], years=range(14, 22)):
     # S14 is a cycle but W14 is not
     return ["%s%d" % (s, y) for y in years for s in seasons
             if not (s == 'W' and y == 14)]
+
 
 def build_query(issue_types, wbs):
     if wbs is None:
@@ -25,6 +26,7 @@ def build_query(issue_types, wbs):
     else:
         return ('project = DLP AND issuetype in (%s) AND wbs ~ "%s"'
                 'ORDER BY wbs ASC, fixVersion DESC' % (", ".join(issue_types), wbs))
+
 
 def basic_auth_from_file(auth_file_path=None):
     """Get basic auth from a two line file.
@@ -39,6 +41,7 @@ def basic_auth_from_file(auth_file_path=None):
 
     return (uname, pwd)
 
+
 def get_issue_links(issue, linkTypeName=None):
     """Get links from an issue.
     """
@@ -48,9 +51,11 @@ def get_issue_links(issue, linkTypeName=None):
     else:
         return [link for link in links if link.type.name in linkTypeName]
 
+
 def get_issues(server, query, max_results=MAX_RESULTS):
     return JIRA(dict(server=server)).search_issues(query,
                                                    maxResults=max_results)
+
 
 def get_issues_by_key(server, keys):
     # Given an iterable of issue keys (DM-1234, DLP-543)
@@ -59,6 +64,7 @@ def get_issues_by_key(server, keys):
     # convert the list to an "in" query
     query = "issuekey in (" + " ,".join(keys) + ")"
     return get_issues(server, query, max_results=None)
+
 
 def compare(a, b, ordering=list(cycles())):
     # Returns negative if a appears before b in ordering, zero if a
@@ -70,13 +76,16 @@ def compare(a, b, ordering=list(cycles())):
     else:
         return 1
 
+
 def get_cycle(issue):
     # Return the name of the first entry in the fixVersions field of issue.
     return issue.fields.fixVersions[0].name
 
+
 def good_block(blocker, blocked, compare_fn=compare):
     # Return True for a well ordered block, False for reversed
     return True if compare_fn(get_cycle(blocker), get_cycle(blocked)) <= 0 else False
+
 
 def get_dependents(key, issues, visited=None):
     # Return the set of keys of all milestones which are blocked by the given
@@ -90,12 +99,13 @@ def get_dependents(key, issues, visited=None):
         visited.append(key)
         for link in issues[key].fields.issuelinks:
             if (link.type.name == "Blocks" and hasattr(link, "outwardIssue") and
-                link.outwardIssue.key in issues):
+                    link.outwardIssue.key in issues):
                 if link.outwardIssue.fields.issuetype.name == "Milestone":
                     dependents.add(link.outwardIssue.key)
                 dependents = dependents.union(get_dependents(link.outwardIssue.key,
                                                              issues, visited))
     return dependents
+
 
 def get_bad_blocks(issues, compare_fn=compare):
     # Return a list of (blocker_key, blocked_key) tuples for all bad blocks in
@@ -105,23 +115,26 @@ def get_bad_blocks(issues, compare_fn=compare):
             for blocker_key, blocker in issues.items()
             for blocked_key in get_dependents(blocker_key, issues)
             if blocker.fields.issuetype.name == "Milestone" and
-               not good_block(blocker, issues[blocked_key], compare_fn)]
+            not good_block(blocker, issues[blocked_key], compare_fn)]
+
 
 def get_unscheduled_milestones(issues):
     # Return a list of keys of all Milestones which do not have a fixVersion
     # defined.
     return [key for key, issue in issues.items()
             if issue.fields.issuetype.name == "Milestone" and
-               (not hasattr(issue.fields, "fixVersions") or
+            (not hasattr(issue.fields, "fixVersions") or
                 not issue.fields.fixVersions)]
+
 
 def get_multiply_scheduled_milestones(issues):
     # Return a list of keys of all Milestones which have more than one
     # fixVersion defined.
     return [key for key, issue in issues.items()
             if issue.fields.issuetype.name == "Milestone" and
-               hasattr(issue.fields, "fixVersions") and
-               len(issue.fields.fixVersions) > 2]
+            hasattr(issue.fields, "fixVersions") and
+            len(issue.fields.fixVersions) > 2]
+
 
 def check_sanity(issues):
     output = StringIO()
@@ -129,10 +142,9 @@ def check_sanity(issues):
 
     # Check for unscheduled milestones
     for key in sorted(get_unscheduled_milestones(issues)):
-        errors=True
         output.write("%s [%s] is not scheduled in any cycle.\n" %
                      (key, issues[key].fields.customfield_10500))
-        del issues[key] # Trim the issue so it doesn't break the bad blocks check
+        del issues[key]  # Trim the issue so it doesn't break the bad blocks check
 
     # Check for milestones which are scheduled in more than one cycle
     for key in sorted(get_multiply_scheduled_milestones(issues)):
@@ -145,11 +157,12 @@ def check_sanity(issues):
     for blocker, blocked in bad_blocks:
         output.write("%s (%s) [%s] blocks %s (%s) [%s].\n" %
                      (blocker, get_cycle(issues[blocker]),
-                     issues[blocker].fields.customfield_10500,
-                     blocked, get_cycle(issues[blocked]),
-                     issues[blocked].fields.customfield_10500))
+                      issues[blocker].fields.customfield_10500,
+                      blocked, get_cycle(issues[blocked]),
+                      issues[blocked].fields.customfield_10500))
 
     return output.getvalue()
+
 
 def dm_to_dlp_cycle(dmcycle):
     # DM project uses "Summer 2016"

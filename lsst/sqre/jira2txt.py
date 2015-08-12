@@ -14,7 +14,6 @@ except ImportError:
     from urlparse import urljoin
 
 from tabulate import tabulate
-from jira import JIRA
 
 from lsst.sqre.jirakit import cycles, dm_to_dlp_cycle, get_issues_by_key
 
