@@ -18,7 +18,7 @@ from tabulate import tabulate
 from lsst.sqre.jirakit import cycles, dm_to_dlp_cycle, get_issues_by_key
 
 
-def jira2txt(issues, csv=False, show_key=True, show_title=False, url_base=''):
+def jira2txt(issues, csv=False, show_key=True, show_title=False, url_base=None):
     def makeRow(wbs, cycles, blank=None):
         row = OrderedDict()
         row['WBS'] = wbs
@@ -56,7 +56,7 @@ def jira2txt(issues, csv=False, show_key=True, show_title=False, url_base=''):
     return _table2text(table, csv)
 
 
-def jirakpm2txt(issues, server, csv=False, url_base=''):
+def jirakpm2txt(issues, server, csv=False, url_base=None):
     # JIRA fields lookup for DM/DLP project:
     #  customfield_10900: cycle
     #  customfield_11000: metric
@@ -121,7 +121,9 @@ def jirakpm2txt(issues, server, csv=False, url_base=''):
 
 def _make_csv_hyperlink_from_issue(url_base, issue, text):
     # Create a CSV-Excel hyperlink
-    return '=HYPERLINK("{}","{}")'.format(urljoin(url_base, issue.key), text)
+    # Base URL is the JIRA server
+    fragment = "browse/" + issue.key
+    return '=HYPERLINK("{}","{}")'.format(urljoin(url_base, fragment), text)
 
 
 def _table2text(table, csv=False):

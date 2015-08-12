@@ -26,7 +26,7 @@ def generate_txt(opts):
         opts.no_url = True
     print(jira2txt(issues, csv=True if opts.mode == "csv" else False,
                    show_key=not opts.no_key, show_title=opts.title,
-                   url_base=('' if opts.no_url else opts.server + "browse/")))
+                   url_base=(None if opts.no_url else opts.server)))
 
 def generate_dot(opts):
     issues = jirakit.get_issues(opts.server,

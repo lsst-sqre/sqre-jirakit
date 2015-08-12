@@ -33,4 +33,4 @@ issues = jirakit.get_issues(opts.server, jirakit.build_query(('"Key Metric"',), 
 
 print(j2txt.jirakpm2txt(issues, opts.server,
                         csv=True if opts.mode == "csv" else False,
-                        url_base=('' if opts.no_url else opts.server + "browse")))
+                        url_base=(None if opts.no_url else opts.server)))
