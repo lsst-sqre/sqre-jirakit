@@ -94,6 +94,10 @@ def jirakpm2txt(issues, server, csv=False, url_base=None):
 
         row = make_row(i)
 
+        # Insert URL to DLP ticket if required
+        if csv and url_base:
+            row["KPM"] = _make_csv_hyperlink_from_issue(url_base, i, row["KPM"])
+
         if len(relates):
             related_issues = get_issues_by_key(server, relates)
             for dm in related_issues:
