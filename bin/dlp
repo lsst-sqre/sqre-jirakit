@@ -48,7 +48,9 @@ def run_server(opts):
     app.run(host=opts.host, port=opts.port)
 
 parser = argparse.ArgumentParser(epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit",
-                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                 description="Front-end to JIRA-DLP database.  Choose a "
+                                 "command from the list below; add '-h' for help.")
 
 parser.add_argument('-s', '--server', default=jirakit.SERVER)
 parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
