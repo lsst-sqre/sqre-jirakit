@@ -87,6 +87,9 @@ likely not be exposed to the public internet.
 In `csv` mode, appending the string `link=yes` to the URL will embed
 hyperlinks in the output.
 
+For a list of key performance metrics and associated values, use
+`http://<host>:<port>/kpm`.
+
 #### `sanity`
 
 Checks the DLP JIRA project for consistency. At present, this means it
@@ -120,7 +123,7 @@ units are assumed to be the same for all cycles.
 This only works for plugging epics into the DM project since the schema
 differs from project to project.
 
-### dlp-omniplan
+### `dlp-omniplan`
 
 Extract milestones & meta-epics from one or more WBS elements in JIRA-DLP and
 write the out in a CSV form suitable for importing into

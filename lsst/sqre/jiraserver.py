@@ -17,7 +17,7 @@ except ImportError:
     from urlparse import urljoin
 
 from lsst.sqre.jira2dot import jira2dot, attr_func, rank_func
-from lsst.sqre.jira2txt import jira2txt
+from lsst.sqre.jira2txt import jira2txt, jirakpm2txt
 from lsst.sqre.jirakit import build_query, cycles, get_issues, check_sanity
 
 app = flask.Flask(__name__)
@@ -68,5 +68,10 @@ def build_server(server):
             return check_sanity(issues) or "No errors found."
 
         return render_text(server, build_query(("Milestone",), wbs), sanity_wrapper)
+
+    @app.route('/kpm')
+    def get_kpm():
+        return render_text(server, build_query(('"Key Metric"',), None),
+                           partial(jirakpm2txt, server=server, csv=False))
 
     return app
