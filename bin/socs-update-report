@@ -14,15 +14,17 @@ from lsst.sqre.jira2confluence import create_list_from_numbered_description
 from lsst.sqre.confluence import bold
 from lsst.sqre.confluence import heading
 from lsst.sqre.confluence import heading_plus_link
+from lsst.sqre.confluence import table
 
 # argument parsing and default options
 
 parser = argparse.ArgumentParser(
-    prog='socs-workplan',
+    prog='socs-update-report',
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description=textwrap.dedent('''
 
-    Generate a full listing of the SOCS workplan in Confluence format.
+    Generate a full listing of the SOCS workplan possibly including issues in Confluence format, along with
+    planned (Epic) and actual (Stories) storypoints for use in monthly reporting.
 
     The output can be piped into a file that can then be cut-and-pasted into a Confluence page via the
     Markdown menu option.
@@ -37,7 +39,10 @@ parser.add_argument('-s', '--server',
 parser.add_argument('-a', '--auth-file',
                     default=None,
                     help='Path to a file containing basic authentication information')
-parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.2')
+parser.add_argument('-i', '--issues', action="store_true",
+                    default=False,
+                    help='Flag for adding table of issues assigned to epics')
+parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
 
 if __name__ == "__main__":
 
@@ -51,7 +56,7 @@ if __name__ == "__main__":
 
     page_content = []
     import time
-    page_content.append("This page details the SOCS workplan.")
+    page_content.append("This page details the SOCS workplan with planned and actual storypoints.")
     page_content.append("Updated: {0}".format(time.strftime("%Y-%m-%d %H:%M", time.localtime())))
     page_content.append("")
 
@@ -76,8 +81,22 @@ if __name__ == "__main__":
             sub_epic_url = lsst.sqre.jirakit.url_for_issue(sub_epic.key)
             page_content.append(heading(heading_plus_link(sub_epic.fields.summary, sub_epic.key,
                                                           sub_epic_url), 4))
+            page_content.append("Planned Story Points = "+str(sub_epic.fields.customfield_10202))
             page_content.append(heading("Statement of Work", 5))
             page_content.append(check_description(sub_epic.fields.description))
             page_content.append("")
+            if opt.issues:
+                page_content.append(heading("Issues", 6))
+                se_issues = jira_server.search_issues("'Epic Link' = '{0}'".format(sub_epic.fields.summary))
+                page_content.append("Number of Issues = {0}".format(len(se_issues)))
+                page_content.append("")
+                if len(se_issues) > 0:
+                    headers = ["Key", "Description", "Status", "Story Points"]
+                    keys = [se_issue.key for se_issue in se_issues]
+                    summaries = [se_issue.fields.summary for se_issue in se_issues]
+                    status_names = [se_issue.fields.status.name for se_issue in se_issues]
+                    story_points = [str(se_issue.fields.customfield_10202) for se_issue in se_issues]
+                    page_content.append(table(headers, keys, summaries, status_names, story_points))
+                    page_content.append("")
 
     print(os.linesep.join(page_content))

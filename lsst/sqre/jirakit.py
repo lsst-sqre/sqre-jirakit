@@ -174,3 +174,25 @@ def dm_to_dlp_cycle(dmcycle):
         return "{0}{1}".format(*parts)
     else:
         raise ValueError("Supplied cycle {} is none-standard".format(dmcycle))
+
+def url_for_issue(key, server=None):
+    """Create a JIRA URL for an issue.
+
+    Args:
+        key: A string containing the JIRA key for the issue.
+        server: A string containing the base URL for the JIRA server.
+
+    Returns:
+        A string containing the URL for the JIRA issue.
+    """
+    try:
+        # Python 3
+        from urllib.parse import urljoin
+    except ImportError:
+        # Python 2
+        from urlparse import urljoin
+
+    if server is None:
+        server = SERVER
+
+    return urljoin(server, "browse/" + key)

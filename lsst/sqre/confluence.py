@@ -32,7 +32,6 @@ def table(headings, *columns, **kwargs):
     Returns:
         A string containing the table formatting and information.
     """
-    import itertools
     import os
     table = []
 
@@ -59,3 +58,37 @@ def table(headings, *columns, **kwargs):
             table.append(" ".join(row))
 
     return os.linesep.join(table)
+
+def link(url, alt_txt=None):
+    """Make a Confluence link.
+
+    This function makes a Confluence link. If the alt_txt parameter is used, this text is displayed for the
+    link.
+
+    Args:
+        url: A string containing the URL to make the link.
+        alt_txt: An alternate text string for display rather than the URL.
+
+    Returns:
+        A string formatted for the link.
+    """
+    if alt_txt is None:
+        return "[{}]".format(url)
+    else:
+        return "[{}|{}]".format(alt_txt, url)
+
+def heading_plus_link(header_txt, link_alt_txt, link_url):
+    """Make a heading with a link.
+
+    This function creates a heading string in the format of:
+        heading text ([link alternate text|link URL])
+
+    Args:
+        header_txt (str): The heading text.
+        link_alt_txt (str): The alternate text for the link.
+        link_url (str): The URL for the link.
+
+    Returns:
+        str: The formatted heading text.
+    """
+    return "{0} ({1})".format(header_txt, link(link_url, link_alt_txt))
