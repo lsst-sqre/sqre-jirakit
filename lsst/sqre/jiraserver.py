@@ -18,9 +18,7 @@ except ImportError:
 
 from lsst.sqre.jira2dot import jira2dot, attr_func, rank_func
 from lsst.sqre.jira2txt import jira2txt, jirakpm2txt
-from lsst.sqre.jirakit import build_query, cycles, get_issues, check_sanity
-
-app = flask.Flask(__name__)
+from lsst.sqre.jirakit import build_query, cycles, get_issues, check_sanity, SERVER
 
 DEFAULT_FMT="pdf"
 
@@ -39,6 +37,8 @@ def render_text(server, query, generator):
     return "<pre>%s</pre>" % (generator(get_issues(server, query)))
 
 def build_server(server):
+    app = flask.Flask(__name__)
+
     @app.route('/wbs/<wbs>', defaults={'fmt': DEFAULT_FMT})
     @app.route('/wbs/<fmt>/<wbs>')
     def get_formatted_graph(fmt, wbs):
@@ -75,3 +75,10 @@ def build_server(server):
                            partial(jirakpm2txt, server=server, csv=False))
 
     return app
+
+# Support deployment with Gunicorn rather than dlp serve. Run:
+#
+# $ gunicorn -w2 -b 0.0.0.0:8080 lsst.sqre.jiraserver:app
+#
+# Server name is not configurable for now.
+app = build_server(SERVER)
