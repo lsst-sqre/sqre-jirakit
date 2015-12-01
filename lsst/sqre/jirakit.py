@@ -136,20 +136,37 @@ def get_multiply_scheduled_milestones(issues):
             len(issue.fields.fixVersions) > 2]
 
 
+def get_scheduled_issues(issues, issuetype):
+    # Return a list of keys of all issues of type issuetype which have a
+    # fixVersion defined.
+    return [key for key, issue in issues.items()
+            if issue.fields.issuetype.name == issuetype and
+            hasattr(issue.fields, "fixVersions") and
+            len(issue.fields.fixVersions) > 0]
+
+
 def check_sanity(issues):
     output = StringIO()
     issues = {issue.key: issue for issue in issues}
 
     # Check for unscheduled milestones
     for key in sorted(get_unscheduled_milestones(issues)):
-        output.write("%s [%s] is not scheduled in any cycle.\n" %
+        output.write("Milestone %s [%s] is not scheduled in any cycle.\n" %
                      (key, issues[key].fields.customfield_10500))
         del issues[key]  # Trim the issue so it doesn't break the bad blocks check
 
     # Check for milestones which are scheduled in more than one cycle
     for key in sorted(get_multiply_scheduled_milestones(issues)):
-        output.write("%s [%s] scheduled in multiple cycles: %s.\n" %
+        output.write("Milestone %s [%s] scheduled in multiple cycles: %s.\n" %
                      (key, issues[key].fields.customfield_10500,
+                      ", ".join(v.name for v in issues[key].fields.fixVersions)))
+
+    # Check for meta-epics which are schedule (they shouldn't be)
+    for key in sorted(get_scheduled_issues(issues, "Meta-epic")):
+        issue = issues[key]
+        output.write("%s %s [%s] has been scheduled: %s.\n" %
+                     (issue.fields.issuetype.name, key,
+                      issue.fields.customfield_10500,
                       ", ".join(v.name for v in issues[key].fields.fixVersions)))
 
     # Check for bad blocks

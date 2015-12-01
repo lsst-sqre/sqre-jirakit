@@ -67,7 +67,7 @@ def build_server(server):
         def sanity_wrapper(issues):
             return check_sanity(issues) or "No errors found."
 
-        return render_text(server, build_query(("Milestone",), wbs), sanity_wrapper)
+        return render_text(server, build_query(("Milestone", "Meta-epic"), wbs), sanity_wrapper)
 
     @app.route('/kpm')
     def get_kpm():
