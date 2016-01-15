@@ -10,6 +10,7 @@ import textwrap
 import lsst.sqre.jirakit
 
 from lsst.sqre.jira2confluence import check_description
+from lsst.sqre.confluence import bold
 from lsst.sqre.confluence import heading
 from lsst.sqre.confluence import heading_plus_link
 from lsst.sqre.confluence import table
@@ -64,14 +65,17 @@ if __name__ == "__main__":
         page_content.append(heading(heading_plus_link(sub_epic.fields.summary, sub_epic.key,
                                                       sub_epic_url), 3))
         page_content.append("Planned Story Points = "+str(sub_epic.fields.customfield_10202))
-        page_content.append(heading("Statement of Work", 5))
+        page_content.append("Status = "+str(sub_epic.fields.status.name))
+        page_content.append("")
+        page_content.append(bold("Statement of Work"))
+        #page_content.append(heading("Statement of Work", 5))
         page_content.append(check_description(sub_epic.fields.description))
         page_content.append("")
         if opt.issues:
-            page_content.append(heading("Issues", 6))
+            #page_content.append(heading("Issues (Stories)", 6))
             se_issues = jira_server.search_issues("'Epic Link' = '{0}'".format(
                 sub_epic.fields.customfield_10207))
-            page_content.append("Number of Issues = {0}".format(len(se_issues)))
+            page_content.append(heading("Number of Issues (Stories) = {0}",6).format(len(se_issues)))
             page_content.append("")
             if len(se_issues) > 0:
                 headers = ["Key", "Description", "Status", "Story Points"]
