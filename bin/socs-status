@@ -71,11 +71,11 @@ class ReleaseInfo(EpicInfo):
 
     @property
     def days_in_release(self):
-        return (self.prev_release_date - self.release_date).days - 1
+        return (self.release_date - self.prev_release_date).days - 1
 
     @property
     def days_elapsed(self):
-        return (self.now - self.release_date).days
+        return (self.now - self.prev_release_date).days
 
     @property
     def days_percent_complete(self):
@@ -184,6 +184,8 @@ if __name__ == "__main__":
 
         v3_epic = EpicInfo(v3_epic_name, "In Progress", 0, done_story_points, assigned_story_points)
         info.append(v3_epic)
+
+    #print(release_info.days_elapsed, release_info.days_in_release)
 
     import matplotlib.pyplot as plt
 
