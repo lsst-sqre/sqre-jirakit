@@ -12,11 +12,16 @@ from jira import JIRA
 SERVER = "https://jira.lsstcorp.org/"
 MAX_RESULTS = None  # Fetch all results
 
-
-def cycles(seasons=['W', 'S'], years=range(14, 22)):
-    # S14 is a cycle but W14 is not
-    return ["%s%d" % (s, y) for y in years for s in seasons
-            if not (s == 'W' and y == 14)]
+def cycles():
+    return ['S14',
+            'W15', 'S15',
+            'W16', 'X16', 'F16',
+            'S17', 'F17',
+            'S18', 'F18',
+            'S19', 'F19',
+            'S20', 'F20',
+            'S21', 'F21', 'W21',  # At time of writing, W21 is defined in JIRA.
+            'S22', 'F22', 'W22']
 
 
 def build_query(issue_types, wbs):
