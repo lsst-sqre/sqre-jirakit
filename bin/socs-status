@@ -1,0 +1,224 @@
+#!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+
+# standard dependencies
+import argparse
+from datetime import datetime
+import os
+import textwrap
+
+from jira import JIRA
+import numpy as np
+
+# in-house modules
+import lsst.sqre.jirakit
+
+# argument parsing and default options
+
+parser = argparse.ArgumentParser(
+    prog='socs-status',
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent('''
+
+    Generate a plot comparing the story points for the epics in a given SOCS release.
+    '''),
+    epilog='Part of jirakit: https://github.com/lsst-sqre/sqre-jirakit'
+)
+
+parser.add_argument('-s', '--server', default=lsst.sqre.jirakit.SERVER,
+                    help='JIRA server URL')
+parser.add_argument('-a', '--auth-file', default=None,
+                    help='Path to a file containing basic authentication information')
+parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
+parser.add_argument('--socs', action='store_true', help='Only include SOCS code epics.')
+parser.add_argument('release', metavar='R', type=str, nargs=1, default='0.3',
+                    help='Specify the release version to check.')
+
+class EpicInfo(object):
+    def __init__(self, name, status, unassigned_sp, done_sp, assigned_sp):
+        self.name = name
+        self.status = status
+        self.unassigned_sp = float(unassigned_sp)
+        self.done_sp = float(done_sp)
+        self.assigned_sp = float(assigned_sp)
+
+    @property
+    def planned(self):
+        return self.unassigned_sp + self.done_sp + self.assigned_sp
+
+    @property
+    def percent_complete(self):
+        return 100.0 * (self.done_sp / self.planned)
+
+class ReleaseInfo(EpicInfo):
+    def __init__(self, name, status, release_date, prev_release_date, unassigned_sp, done_sp, assigned_sp):
+        EpicInfo.__init__(self, name, status, unassigned_sp, done_sp, assigned_sp)
+        self.release_date = datetime.strptime(release_date, "%Y-%m-%d")
+        self.prev_release_date = datetime.strptime(prev_release_date, "%Y-%m-%d")
+        self.now = datetime.now()
+
+    def _date_string(self, dt):
+        return dt.strftime("%Y-%m-%d")
+
+    @property
+    def now_string(self):
+        return self._date_string(self.now)
+
+    @property
+    def release_date_string(self):
+        return self._date_string(self.release_date)
+
+    @property
+    def days_in_release(self):
+        return (self.release_date - self.prev_release_date).days - 1
+
+    @property
+    def days_elapsed(self):
+        return (self.now - self.prev_release_date).days
+
+    @property
+    def days_percent_complete(self):
+        return 100.0 * (self.days_elapsed / self.days_in_release)
+
+def get_epic_info(issue, socs_only=False):
+    epic_info = []
+
+    sub_epic_links = lsst.sqre.jirakit.get_issue_links(issue, "Containment")
+    #print(sub_epic_links)
+    sub_epics = [jira_server.issue(sub_epic_link.outwardIssue.key) for sub_epic_link in sub_epic_links]
+    for sub_epic in sub_epics:
+        epic_name = sub_epic.fields.summary
+        if socs_only:
+            if "Cadence" in epic_name or "production" in epic_name:
+                continue
+        #print(epic_name)
+        total_story_points = sub_epic.fields.customfield_10202
+        #planned_story_points = sub_epic.fields.customfield_10202
+        #print("Planned Story Points = " + str(planned_story_points))
+        epic_status = sub_epic.fields.status.name
+        #print("Status = " + str(epic_status))
+
+        se_issues = jira_server.search_issues("'Epic Link' = '{0}'".format(sub_epic.fields.summary))
+
+        done_story_points = 0
+        assigned_story_points = 0
+        if se_issues:
+            for se_issue in se_issues:
+                status_name = se_issue.fields.status.name
+                story_points = se_issue.fields.customfield_10202
+
+                if status_name == "Done":
+                    done_story_points += story_points
+                else:
+                    assigned_story_points += story_points
+
+        unassigned_story_points = total_story_points - done_story_points - assigned_story_points
+        #print("Unassigned Story Points = {}".format(unassigned_story_points))
+        #print("Done Story Points = {}".format(done_story_points))
+        #print("Assigned Story Points = {}".format(assigned_story_points))
+
+        epic_info.append(EpicInfo(epic_name, epic_status, unassigned_story_points, done_story_points,
+                                  assigned_story_points))
+
+    return epic_info
+
+if __name__ == "__main__":
+
+    options = parser.parse_args()
+
+    jira_server = JIRA(server=options.server,
+                       basic_auth=lsst.sqre.jirakit.basic_auth_from_file(options.auth_file))
+
+    query = "project = Simulations AND issuetype = Epic AND " \
+            "summary ~ \"SOCS Release v{}\"".format(options.release[0])
+    issues = jira_server.search_issues(query)
+
+    rinfo = []
+    info = None
+    for issue in issues:
+        socs_summary = issue.fields.summary
+        socs_duedate = issue.fields.duedate
+        rinfo.extend([socs_summary, socs_duedate, issue.fields.status.name])
+        print("{}".format(socs_summary))
+        print("{0} {1}".format("Release Date:", socs_duedate))
+        # Get previous release date
+        sub_epic_links = lsst.sqre.jirakit.get_issue_links(issue, "Finish-to-Start Dependency")
+        for sub_epic_link in sub_epic_links:
+            try:
+                sub_epics = jira_server.issue(sub_epic_link.outwardIssue.key)
+                #print(sub_epics.fields.summary)
+                rinfo.append(sub_epics.fields.duedate)
+            except AttributeError:
+                pass
+
+        info = get_epic_info(issue, options.socs)
+
+    unassigned = np.array([u.unassigned_sp for u in info])
+    assigned = np.array([a.assigned_sp for a in info])
+    done = np.array([d.done_sp for d in info])
+
+    release_info = ReleaseInfo(rinfo[0], rinfo[2], rinfo[1], rinfo[3], np.sum(unassigned),
+                               np.sum(done), np.sum(assigned))
+
+    if not options.socs:
+        v3_epic_name = "Old Operations Simulator Extra Work"
+        # Get information from v3 work
+        query_v3 = "project = Simulations AND assignee = mareuter AND cf[10206] = \"{}\"".format(v3_epic_name)
+        issues_v3 = jira_server.search_issues(query_v3)
+        done_story_points = 0
+        assigned_story_points = 0
+        for issue_v3 in issues_v3:
+            sprint_info = issue_v3.fields.customfield_10205
+            if sprint_info is not None:
+                sprint_date = sprint_info[0].split(',')[3].split('=')[-1]
+                sd = datetime.strptime(sprint_date, "%Y/%m/%d")
+                #print(sprint_date)
+                if sd > release_info.prev_release_date and sd <= release_info.release_date:
+                    status_name = issue_v3.fields.status.name
+                    story_points = issue_v3.fields.customfield_10202
+                    if status_name == "Done":
+                        done_story_points += story_points
+                    else:
+                        assigned_story_points += story_points
+
+        v3_epic = EpicInfo(v3_epic_name, "In Progress", 0, done_story_points, assigned_story_points)
+        info.append(v3_epic)
+
+    #print(release_info.days_elapsed, release_info.days_in_release)
+
+    import matplotlib.pyplot as plt
+
+    x = np.arange(len(info)) + 0.5
+
+    max_y = max([y.planned for y in info])
+
+    unassigned = np.array([u.unassigned_sp for u in info])
+    assigned = np.array([a.assigned_sp for a in info])
+    done = np.array([d.done_sp for d in info])
+
+    titles = [os.linesep.join(n.name.split()) for n in info]
+
+    bar_width = 0.35
+    labels = ["Done", "Assigned", "Unassigned"]
+
+    fig, ax = plt.subplots(figsize=(12, 7))
+    fig.subplots_adjust(top=0.88, bottom=0.2)
+    ax.yaxis.grid(True)
+
+    p1 = plt.bar(x, done, bar_width, color='g')
+    p2 = plt.bar(x, assigned, bar_width, color='y', bottom=done)
+    p3 = plt.bar(x, unassigned, bar_width, color='r', bottom=done+assigned)
+
+    plt.ylabel("Story Points")
+    plt.title("{} (Date: {})\nReport Date: {}\n"
+              "DC: {:.1f}%, PC: {:.1f}%".format(release_info.name,
+                                                release_info.release_date_string,
+                                                release_info.now_string,
+                                                release_info.days_percent_complete,
+                                                release_info.percent_complete))
+    plt.xticks(x + bar_width/2., titles)
+    plt.ylim(0, max_y * 1.20)
+    plt.legend((p1[0], p2[0], p3[0]), labels, loc=0)
+
+    plt.show()

@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+# standard dependencies
+import argparse
+import textwrap
+
+# in-house modules
+import lsst.sqre.jirakit
+
+from lsst.sqre.jira2confluence import check_description
+from lsst.sqre.confluence import bold
+from lsst.sqre.confluence import heading
+from lsst.sqre.confluence import heading_plus_link
+from lsst.sqre.confluence import table
+
+# argument parsing and default options
+
+parser = argparse.ArgumentParser(
+    prog='sims-workplan',
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent('''
+
+    Generate a full listing of the SIMS Epics possibly including issues in Confluence format.
+
+    The output can be piped into a file that can then be cut-and-pasted into a Confluence page via the
+    Markdown menu option.
+
+    '''),
+    epilog='Part of jirakit: https://github.com/lsst-sqre/sqre-jirakit'
+)
+
+parser.add_argument('-s', '--server',
+                    default=lsst.sqre.jirakit.SERVER,
+                    help='JIRA server URL')
+parser.add_argument('-a', '--auth-file',
+                    default=None,
+                    help='Path to a file containing basic authentication information')
+parser.add_argument('-i', '--issues', action="store_true",
+                    default=False,
+                    help='Flag for adding table of issues assigned to epics')
+parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
+
+if __name__ == "__main__":
+
+    opt = parser.parse_args()
+
+    from jira import JIRA
+    jira_server = JIRA(server=opt.server, basic_auth=lsst.sqre.jirakit.basic_auth_from_file(opt.auth_file))
+
+    query = "project = SIM AND Team != opsim AND type = Epic and "\
+            "labels = sims order by Key ASC"
+    sub_epics = jira_server.search_issues(query)
+
+    page_content = []
+    import time
+    page_content.append("This page displays the (non-SOCS) SIMS Epics and their descriptions.")
+    page_content.append("Updated: {0}".format(time.strftime("%Y-%m-%d %H:%M", time.localtime())))
+    page_content.append("")
+
+    import os
+    for sub_epic in sub_epics:
+        sub_epic_url = lsst.sqre.jirakit.url_for_issue(sub_epic.key)
+        page_content.append(heading(heading_plus_link(sub_epic.fields.summary, sub_epic.key,
+                                                      sub_epic_url), 3))
+        page_content.append("Planned Story Points = "+str(sub_epic.fields.customfield_10202))
+        page_content.append("Status = "+str(sub_epic.fields.status.name))
+        page_content.append("")
+        page_content.append(bold("Statement of Work"))
+        #page_content.append(heading("Statement of Work", 5))
+        page_content.append(check_description(sub_epic.fields.description))
+        page_content.append("")
+        if opt.issues:
+            #page_content.append(heading("Issues (Stories)", 6))
+            se_issues = jira_server.search_issues("'Epic Link' = '{0}'".format(
+                sub_epic.fields.customfield_10207))
+            page_content.append(heading("Number of Issues (Stories) = {0}",6).format(len(se_issues)))
+            page_content.append("")
+            if len(se_issues) > 0:
+                headers = ["Key", "Description", "Status", "Story Points"]
+                keys = [se_issue.key for se_issue in se_issues]
+                summaries = [se_issue.fields.summary for se_issue in se_issues]
+                status_names = [se_issue.fields.status.name for se_issue in se_issues]
+                story_points = [str(se_issue.fields.customfield_10202) for se_issue in se_issues]
+                page_content.append(table(headers, keys, summaries, status_names, story_points))
+                page_content.append("")
+
+    print(os.linesep.join(page_content))
