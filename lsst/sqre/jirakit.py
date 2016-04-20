@@ -187,12 +187,18 @@ def check_sanity(issues):
 
 
 def dm_to_dlp_cycle(dmcycle):
-    # DM project uses "Summer 2016"
-    # DLP project uses S16
-    matcher = re.compile(r"([SW])\w+\s\d*(\d\d)$")
+    # DM Project  | DLP Project
+    #
+    # Spring 1234 | S34
+    # Summer 1234 | S34
+    # Extra 1234  | X34
+    # Fall 1234   | F34
+    # Winter 1234 | W34
+    # [There is no year with both spring & summer]
+    matcher = re.compile(r"\w?([SWxF])\w+\s\d*(\d\d)$")
     matched = matcher.search(str(dmcycle))
     if matched:
         parts = matched.groups()
-        return "{0}{1}".format(*parts)
+        return "{0}{1}".format(*(s.upper() for s in parts))
     else:
-        raise ValueError("Supplied cycle {} is none-standard".format(dmcycle))
+        raise ValueError("Supplied cycle {} is non-standard".format(dmcycle))
