@@ -31,6 +31,8 @@ parser = argparse.ArgumentParser(
     epilog='Part of jirakit: https://github.com/lsst-sqre/sqre-jirakit'
 )
 
+parser.add_argument('-l', '--label', default='FY16',
+                    help='Set the label for the main epic query. Default FY16.')
 parser.add_argument('-s', '--server',
                     default=lsst.sqre.jirakit.SERVER,
                     help='JIRA server URL')
@@ -50,7 +52,7 @@ if __name__ == "__main__":
     jira_server = JIRA(server=opt.server, basic_auth=lsst.sqre.jirakit.basic_auth_from_file(opt.auth_file))
 
     query = "project = SIM AND Team != opsim AND type = Epic and "\
-            "labels = sims order by Key ASC"
+            "labels = {} order by Key ASC".format(opt.label)
     sub_epics = jira_server.search_issues(query)
 
     page_content = []
