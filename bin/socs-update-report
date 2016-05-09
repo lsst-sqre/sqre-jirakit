@@ -6,6 +6,8 @@ from __future__ import print_function
 import argparse
 import textwrap
 
+import jira
+
 # in-house modules
 import lsst.sqre.jirakit
 
@@ -91,7 +93,10 @@ if __name__ == "__main__":
             page_content.append("")
             if opt.issues:
                 #page_content.append(heading("Issues (Stories)", 6))
-                se_issues = jira_server.search_issues("'Epic Link' = '{0}'".format(sub_epic.fields.summary))
+                try:
+                    se_issues = jira_server.search_issues("'Epic Link' = '{0}'".format(sub_epic.fields.summary))
+                except jira.exceptions.JIRAError:
+                    se_issues = []
                 page_content.append(heading("Number of Issues (Stories) = {0}",6).format(len(se_issues)))
                 page_content.append("")
                 if len(se_issues) > 0:
