@@ -6,6 +6,7 @@ import unittest
 
 import lsst.sqre.jirakit as jirakit
 
+
 class JiraKitTest(unittest.TestCase):
 
     def testBasic(self):

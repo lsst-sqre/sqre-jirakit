@@ -15,6 +15,7 @@ from collections import OrderedDict
 from csv import DictWriter
 from io import BytesIO
 
+
 def cycle_to_date(cycle):
     # Return the date of the last day of the cycle, by which associated
     # milestones should be complete
@@ -25,12 +26,13 @@ def cycle_to_date(cycle):
     else:
         return "%d-02-%d" % (year, monthrange(year, 2)[1])
 
+
 def get_blockers(ticket, id_map):
     return ", ".join([str(id_map[link.inwardIssue.key])
-                               for link in ticket.fields.issuelinks
-                               if link.type.name == "Blocks" and
-                               hasattr(link, "inwardIssue") and
-                               link.inwardIssue.key in id_map])
+                      for link in ticket.fields.issuelinks
+                      if link.type.name == "Blocks" and
+                      hasattr(link, "inwardIssue") and
+                      link.inwardIssue.key in id_map])
 
 # Map Omnifocus field names to functions which extract the relevant info from
 # a JIRA ticket
@@ -60,22 +62,22 @@ focus_to_jira = OrderedDict([
 if __name__ == "__main__":
     wbs_map = OrderedDict([
         ("02C.04.01", ("App Framework for Catalogs", jirakit.get_issues(jirakit.SERVER,
-                       jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.01")))),
+                                                                        jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.01")))),
         ("02C.04.02", ("Calibration Products Pipeline", jirakit.get_issues(jirakit.SERVER,
-                       jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.02")))),
+                                                                           jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.02")))),
         ("02C.04.03", ("PSF Estimation", jirakit.get_issues(jirakit.SERVER,
-                       jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.03")))),
+                                                            jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.03")))),
         ("02C.04.04", ("Image Coaddition Pipeline", jirakit.get_issues(jirakit.SERVER,
-                       jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.04")))),
+                                                                       jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.04")))),
         ("02C.04.05", ("Object Detection and Deblending", jirakit.get_issues(jirakit.SERVER,
-                       jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.05")))),
+                                                                             jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.05")))),
         ("02C.04.06", ("Object Characterization Pipeline", jirakit.get_issues(jirakit.SERVER,
-                       jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.06"))))
+                                                                              jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.06"))))
     ])
-    id_map ={}
+    id_map = {}
     for j, wbs in enumerate(wbs_map, start=1):
         for i, issue in enumerate(wbs_map[wbs][1], start=1):
-            id_map[issue.key] =  "%d.%d" % (j, i)
+            id_map[issue.key] = "%d.%d" % (j, i)
 
     buf = BytesIO()
     writer = DictWriter(buf, fieldnames=focus_to_jira.keys())

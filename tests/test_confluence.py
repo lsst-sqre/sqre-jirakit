@@ -6,6 +6,7 @@ import unittest
 
 import lsst.sqre.confluence as confluence
 
+
 class ConfluenceTest(unittest.TestCase):
 
     def testBold(self):

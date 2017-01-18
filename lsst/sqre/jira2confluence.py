@@ -2,6 +2,7 @@
 Module for Confluence helper functions.
 """
 
+
 def check_description(descr):
     """Check a JIRA description field.
     """
@@ -9,6 +10,7 @@ def check_description(descr):
         return "No description provided."
     else:
         return descr
+
 
 def create_list_from_numbered_description(desrc, bulletType="*"):
     """Create Confluence list from a JIRA numbered description.

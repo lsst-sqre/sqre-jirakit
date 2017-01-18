@@ -12,6 +12,7 @@ from jira import JIRA
 SERVER = "https://jira.lsstcorp.org/"
 MAX_RESULTS = None  # Fetch all results
 
+
 def cycles():
     return ['S14',
             'W15', 'S15',

@@ -3,6 +3,7 @@ import logging
 import textwrap
 from io import StringIO
 
+
 def attr_func(issue):
     if issue.fields.issuetype.name == "Milestone":
         if issue.fields.resolution and issue.fields.resolution.name == "Done":
@@ -10,15 +11,17 @@ def attr_func(issue):
         else:
             return 'style="rounded,filled";fillcolor="powderblue"',
     if (issue.fields.issuetype.name == "Meta-epic" and issue.fields.resolution and
-        issue.fields.resolution.name == "Done"):
+            issue.fields.resolution.name == "Done"):
         return 'style="filled";fillcolor="seashell2"',
     else:
         return ()
+
 
 def rank_func(issue):
     if issue.fields.issuetype.name == "Milestone" and len(issue.fields.fixVersions) > 0:
         return issue.fields.fixVersions[0]
     return None
+
 
 def jira2dot(issues, link_types=("Blocks",), attr_func=None, rank_func=None,
              ranks=None, diag_name="Diagram"):

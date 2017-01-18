@@ -17,8 +17,10 @@ DEFAULT_WBS = "02*"
 # and Python 2 will raise. This is a rather ugly workaround -- better ideas?
 if sys.version_info.major == 2:
     import __builtin__
+
     def print(value, *args, **kwargs):
         return __builtin__.print(value.encode('utf-8'), *args, **kwargs)
+
 
 def generate_txt(opts):
     issues = jirakit.get_issues(opts.server, jirakit.build_query(('Milestone',), opts.wbs))
@@ -28,11 +30,13 @@ def generate_txt(opts):
                    show_key=not opts.no_key, show_title=opts.title,
                    url_base=(None if opts.no_url else opts.server)))
 
+
 def generate_dot(opts):
     issues = jirakit.get_issues(opts.server,
                                 jirakit.build_query(('Milestone', 'Meta-epic'), opts.wbs))
     print(jira2dot(issues, attr_func=attr_func, diag_name="DLP Roadmap",
                    rank_func=rank_func, ranks=jirakit.cycles()))
+
 
 def check_sanity(opts):
     issues = jirakit.get_issues(opts.server,
@@ -41,6 +45,7 @@ def check_sanity(opts):
     print(result)
     if result:
         sys.exit(1)
+
 
 def run_server(opts):
     app = build_server(opts.server)

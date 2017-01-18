@@ -7,15 +7,18 @@ try:
 except ImportError:
     from itertools import izip_longest as zip_longest
 
+
 def bold(text):
     """Make Confluence bold text.
     """
     return "*{0}*".format(text)
 
+
 def heading(title, level=1):
     """Make a Confluence heading level.
     """
     return "h{0}. {1}".format(level, title)
+
 
 def table(headings, *columns, **kwargs):
     """Make a Confluence table.

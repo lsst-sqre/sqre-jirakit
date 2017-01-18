@@ -20,10 +20,11 @@ from lsst.sqre.jira2dot import jira2dot, attr_func, rank_func
 from lsst.sqre.jira2txt import jira2txt, jirakpm2txt
 from lsst.sqre.jirakit import build_query, cycles, get_issues, check_sanity, SERVER
 
-DEFAULT_FMT="pdf"
+DEFAULT_FMT = "pdf"
 
 # Supported formats. A request for anything else throws a 404.
 FMTS = {"dot", "eps", "fig", "pdf", "svg", "png", "ps", "svg"}
+
 
 @contextmanager
 def tempdir():
@@ -33,8 +34,10 @@ def tempdir():
     finally:
         rmtree(dirname, ignore_errors=True)
 
+
 def render_text(server, query, generator):
     return "<pre>%s</pre>" % (generator(get_issues(server, query)))
+
 
 def build_server(server):
     app = flask.Flask(__name__)

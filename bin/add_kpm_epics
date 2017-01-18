@@ -4,45 +4,50 @@ from __future__ import print_function
 from jira.utils import JIRAError
 from jira import JIRA
 
-import argparse, urlparse, warnings, textwrap
+import argparse
+import urlparse
+import warnings
+import textwrap
+
 
 def checkArguments(args, jiraInst):
     """ Check the input arguments for obvious errors like misspelled cycles or team names.
     param[in] args  Parsed commandline arguments
     param[in] jiraInst  Instance of a JIRA object to use in validation effort.
     """
-    #Get metadata for Epics in the DM project.
+    # Get metadata for Epics in the DM project.
     issueMetadata = jiraInst.createmeta(projectKeys='DM', issuetypeNames='Epic', expand='projects.issuetypes.fields')
 
-    #issueMetadata is a deeply nested structure.  Traverse to the appropriate level only once.
+    # issueMetadata is a deeply nested structure.  Traverse to the appropriate level only once.
     fields = issueMetadata['projects'][0]['issuetypes'][0]['fields']
 
-    #check value, cycle, unit are the same size
+    # check value, cycle, unit are the same size
     if not (len(args.value) == len(args.unit) and len(args.unit) == len(args.cycle)):
-        raise ValueError("Length of values (%i), units (%i) and cycles (%i) do not match"%
-                (len(args.value), len(args.unit), len(args.cycle)))
+        raise ValueError("Length of values (%i), units (%i) and cycles (%i) do not match" %
+                         (len(args.value), len(args.unit), len(args.cycle)))
 
-    #check that the team is valid 10502 is the team field in the DM project
+    # check that the team is valid 10502 is the team field in the DM project
     teams = [el['value'] for el in fields['customfield_10502']['allowedValues']]
     if args.team not in teams:
-        raise ValueError("Specified team, %s, does not exist in the DM project"%(args.team))
+        raise ValueError("Specified team, %s, does not exist in the DM project" % (args.team))
 
-    #check DLP issue exists
+    # check DLP issue exists
     try:
         jiraInst.issue(args.kpmId)
     except JIRAError:
-        raise ValueError("Couldn't find KPM issue to link: %s"%(args.kpmId))
+        raise ValueError("Couldn't find KPM issue to link: %s" % (args.kpmId))
 
-    #check that each cycle is valid
+    # check that each cycle is valid
     cycles = [el['value'] for el in fields['customfield_10900']['allowedValues']]
     for cycle in args.cycle:
         if cycle not in cycles:
-            raise ValueError("Invalid cycle provided: %s"%(cycle))
+            raise ValueError("Invalid cycle provided: %s" % (cycle))
 
     if not args.assignee:
         assignee = raw_input("No assignee specified.  Press enter to leave unassigned: ")
         if not assignee == "":
             args.assignee = assignee
+
 
 def getCredentials():
     """ Get Jira credentials.  Currently, this just asks for the username and password, but
@@ -52,6 +57,7 @@ def getCredentials():
     username = raw_input("Enter username: ")
     password = raw_input("Enter Password: ")
     return username, password
+
 
 def makeEpics(jiraInst, kpmId, team, wbs, assignee, unit, values, cycles, dryrun):
     """ Create the epics in Jira
@@ -89,17 +95,17 @@ def makeEpics(jiraInst, kpmId, team, wbs, assignee, unit, values, cycles, dryrun
     for value, cycle in zip(values, cycles):
         if cycle is None:
             raise ValueError("Cycles cannot be None")
-        epic_name = "KPM: %s, FY%s"%(linkIssue.fields.summary, cycle[-2:])
-        summary = "KPM Measurement: %s, FY%s"%(linkIssue.fields.summary, cycle[-2:])
+        epic_name = "KPM: %s, FY%s" % (linkIssue.fields.summary, cycle[-2:])
+        summary = "KPM Measurement: %s, FY%s" % (linkIssue.fields.summary, cycle[-2:])
 
         if not dryrun:
-            new_issue = jiraInst.create_issue(project={'id':10501}, issuetype={'name':'Epic'},
-                                          customfield_10207=epic_name, assignee={'name':assignee},
-                                          summary=summary, customfield_10500=wbs,
-                                          customfield_11000=value, customfield_11001=unit,
-                                          customfield_10502={'value':team}, customfield_10900={'value':cycle})
+            new_issue = jiraInst.create_issue(project={'id': 10501}, issuetype={'name': 'Epic'},
+                                              customfield_10207=epic_name, assignee={'name': assignee},
+                                              summary=summary, customfield_10500=wbs,
+                                              customfield_11000=value, customfield_11001=unit,
+                                              customfield_10502={'value': team}, customfield_10900={'value': cycle})
 
-            #Issue links need to be made sepavrately
+            # Issue links need to be made sepavrately
             jiraInst.create_issue_link(type="Relates", inwardIssue=new_issue.key, outwardIssue=kpmId)
             print("Created Epic: %s" % (new_issue.key))
         else:
@@ -134,12 +140,12 @@ if __name__ == '__main__':
     parser.add_argument('wbs', type=str, help='WBS to assign to epic.')
     parser.add_argument('--unit', type=str, help='Units of the value, e.g. arcseconds')
     parser.add_argument('--value', type=float, nargs='+',
-                        help='Value of the KPM to achieve in a particular cycle.  There should be a '\
-                             'corresponding --cycle argument.  N.b. Jira numeric fields do not have '\
-                             'much precision, so powers of 10 should be used in the units to bring the value '\
+                        help='Value of the KPM to achieve in a particular cycle.  There should be a '
+                             'corresponding --cycle argument.  N.b. Jira numeric fields do not have '
+                             'much precision, so powers of 10 should be used in the units to bring the value '
                              'into the range -10-10.')
     parser.add_argument('--cycle', type=str, nargs='+',
-                         help='Cycle in which the KPM value must be reached, e.g. Summer 2019')
+                        help='Cycle in which the KPM value must be reached, e.g. Summer 2019')
     parser.add_argument('--assignee', type=str, default=None)
     parser.add_argument('--server', type=str, default='https://jira.lsstcorp.org')
     parser.add_argument('--dryrun', action='store_true')
@@ -152,5 +158,3 @@ if __name__ == '__main__':
     checkArguments(args, jiraInst)
 
     makeEpics(jiraInst, args.kpmId, args.team, args.wbs, args.assignee, args.unit, args.value, args.cycle, args.dryrun)
-
-
