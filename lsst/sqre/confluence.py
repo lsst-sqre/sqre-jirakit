@@ -35,7 +35,6 @@ def table(headings, *columns, **kwargs):
     Returns:
         A string containing the table formatting and information.
     """
-    import itertools
     import os
     table = []
 

@@ -1,4 +1,3 @@
-import sys
 import logging
 import textwrap
 from io import StringIO
@@ -96,7 +95,8 @@ def jira2dot(issues, link_types=("Blocks",), attr_func=None, rank_func=None,
         output.write(u'  {0}\n'.format(u" -> ".join(u'"{0}"'.format(r) for r in ranks)))
         for rank in ranks:
             items = [rank] + [i.key for i in by_rank.get(str(rank), [])]
-            output.write(u'  {{ rank=same; {0} }}\n'.format(u"; ".join(u'"{0}"'.format(item) for item in items)))
+            output.write(u'  {{ rank=same; {0} }}\n'.format(u"; ".join(u'"{0}"'.format(item)
+                                                                       for item in items)))
 
     # Declare issue links
     for issue in by_key.values():
