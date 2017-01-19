@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+"""
+Extract resource requirements from JIRA-DLP and dump to screen.
+
+Determine the earliest scheduled milestone which depends on each of the
+meta-epics in the specified WBS elements. That specifies the not-later-than
+date for the meta-epic.
+
+Convert the time allocation ("timeoriginalestimate"), which JIRA provides in
+seconds, to a number of FTE months.
+
+Print a summary of FTE months required in each cycle for each WBS element.
+
+Sorry, no command line options or other niceties for now; the only way to
+select your WBS etc is to edit the code below.
+"""
+from __future__ import print_function
+
+import lsst.sqre.jirakit as jirakit
+import sys
+
+def seconds_to_months(seconds):
+    # Following the JIRA assumptions.
+    SECONDS_PER_HOUR = 3600.0
+    HOURS_PER_DAY = 8
+    DAYS_PER_WEEK = 5
+    WEEKS_PER_MONTH = 4
+
+    seconds_per_month = WEEKS_PER_MONTH * DAYS_PER_WEEK * HOURS_PER_DAY * SECONDS_PER_HOUR
+    return seconds / seconds_per_month
+
+def get_earliest_cycle(meta_epic):
+    # Return the cycle containing the earliest milestone which depends on this
+    # meta epic.
+    milestone_keys = [link.outwardIssue.key for link in meta_epic.fields.issuelinks
+                      if link.type.name == "Blocks"
+                      and hasattr(link, "outwardIssue")]
+    cycles = [i.fields.fixVersions[0].name for i in jirakit.get_issues_by_key(jirakit.SERVER, milestone_keys)]
+    return sorted(cycles, cmp=jirakit.compare)[0]
+
+
+if __name__ == "__main__":
+    for wbs in ("02C.04.01", "02C.04.02", "02C.04.03", "02C.04.04", "02C.04.05", "02C.04.06"):
+        print("%s:\n" % (wbs,))
+        time_per_cycle = {
+            "W16": 0, "S16": 0, "W17": 0, "S17": 0, "W18": 0, "S18": 0,
+            "W19": 0, "S19": 0, "W20": 0, "S20": 0, "W21": 0, "S21": 0
+        }
+        for i in jirakit.get_issues(jirakit.SERVER, jirakit.build_query(("Meta-epic",), wbs)):
+            try:
+                time = seconds_to_months(i.fields.timeoriginalestimate)
+                cycle = get_earliest_cycle(i)
+                time_per_cycle[cycle] += time
+                if cycle == "S15": print(i.key)
+            except TypeError as e:
+                print("Error in %s: %s" % (i.key, str(e)), file=sys.stderr)
+        for k in sorted(time_per_cycle.keys(), cmp=jirakit.compare):
+            print("%s: %.1f" % (k, time_per_cycle[k]))
+        print("\n")
