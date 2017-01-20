@@ -4,7 +4,6 @@ import io
 import sys
 from csv import DictWriter
 from collections import OrderedDict
-from contextlib import contextmanager
 
 try:
     # Python 3
@@ -111,8 +110,8 @@ def jirakpm2txt(issues, server, csv=False, url_base=None):
                 cyc = dm_to_dlp_cycle(cyc)
                 row[cyc] = dm.fields.customfield_11000
                 if str(dm.fields.customfield_11001) != metric_unit:
-                    print("{}: Unit mismatch between DLP KPM and {} ({} != {})".format(i, dm, metric_unit,
-                                                                                       dm.fields.customfield_11001),
+                    print("{}: Unit mismatch between DLP KPM and {} ({} != {})"
+                          .format(i, dm, metric_unit, dm.fields.customfield_11001),
                           file=sys.stderr)
                 # In CSV mode we can include a URL to the actual issue
                 if csv and url_base:

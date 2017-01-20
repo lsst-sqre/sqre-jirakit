@@ -51,7 +51,7 @@ def build_server(server):
         graph = graphviz.Source(jira2dot(issues, attr_func=attr_func, rank_func=rank_func,
                                          ranks=cycles()), format=fmt)
         with tempdir() as dirname:
-            image = graph.render("graph", cleanup=True, directory=dirname)
+            graph.render("graph", cleanup=True, directory=dirname)
             return flask.send_file(os.path.join(dirname, "graph%s%s" % (os.path.extsep, fmt)))
 
     @app.route('/wbs/csv/<wbs>')
@@ -78,6 +78,7 @@ def build_server(server):
                            partial(jirakpm2txt, server=server, csv=False))
 
     return app
+
 
 # Support deployment with Gunicorn rather than dlp serve. Run:
 #

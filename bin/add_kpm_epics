@@ -4,10 +4,14 @@ from __future__ import print_function
 from jira.utils import JIRAError
 from jira import JIRA
 
+import sys
 import argparse
-import urlparse
-import warnings
 import textwrap
+
+
+if sys.version[0] < 3:
+    # called raw_input on python2
+    input = raw_input  # noqa
 
 
 def checkArguments(args, jiraInst):
@@ -16,7 +20,8 @@ def checkArguments(args, jiraInst):
     param[in] jiraInst  Instance of a JIRA object to use in validation effort.
     """
     # Get metadata for Epics in the DM project.
-    issueMetadata = jiraInst.createmeta(projectKeys='DM', issuetypeNames='Epic', expand='projects.issuetypes.fields')
+    issueMetadata = jiraInst.createmeta(projectKeys='DM', issuetypeNames='Epic',
+                                        expand='projects.issuetypes.fields')
 
     # issueMetadata is a deeply nested structure.  Traverse to the appropriate level only once.
     fields = issueMetadata['projects'][0]['issuetypes'][0]['fields']
@@ -44,7 +49,7 @@ def checkArguments(args, jiraInst):
             raise ValueError("Invalid cycle provided: %s" % (cycle))
 
     if not args.assignee:
-        assignee = raw_input("No assignee specified.  Press enter to leave unassigned: ")
+        assignee = input("No assignee specified.  Press enter to leave unassigned: ")
         if not assignee == "":
             args.assignee = assignee
 
@@ -54,8 +59,8 @@ def getCredentials():
     I hope we can do this with OAuth in the future.
     returns username, password
     """
-    username = raw_input("Enter username: ")
-    password = raw_input("Enter Password: ")
+    username = input("Enter username: ")
+    password = input("Enter Password: ")
     return username, password
 
 
@@ -103,7 +108,8 @@ def makeEpics(jiraInst, kpmId, team, wbs, assignee, unit, values, cycles, dryrun
                                               customfield_10207=epic_name, assignee={'name': assignee},
                                               summary=summary, customfield_10500=wbs,
                                               customfield_11000=value, customfield_11001=unit,
-                                              customfield_10502={'value': team}, customfield_10900={'value': cycle})
+                                              customfield_10502={'value': team},
+                                              customfield_10900={'value': cycle})
 
             # Issue links need to be made sepavrately
             jiraInst.create_issue_link(type="Relates", inwardIssue=new_issue.key, outwardIssue=kpmId)
@@ -119,7 +125,9 @@ def makeEpics(jiraInst, kpmId, team, wbs, assignee, unit, values, cycles, dryrun
             Metric unit: %s
             Team: %s
             Cycle: %s
-            *****************************\n""" % (epic_name, summary, assignee, wbs, value, unit, team, cycle)))
+            *****************************\n""" % (epic_name, summary, assignee,
+                                                  wbs, value, unit, team, cycle)))
+
 
 if __name__ == '__main__':
     description = """
@@ -157,4 +165,5 @@ if __name__ == '__main__':
 
     checkArguments(args, jiraInst)
 
-    makeEpics(jiraInst, args.kpmId, args.team, args.wbs, args.assignee, args.unit, args.value, args.cycle, args.dryrun)
+    makeEpics(jiraInst, args.kpmId, args.team, args.wbs, args.assignee, args.unit, args.value,
+              args.cycle, args.dryrun)

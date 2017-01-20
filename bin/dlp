@@ -52,6 +52,7 @@ def run_server(opts):
     app.config['DEBUG'] = opts.debug
     app.run(host=opts.host, port=opts.port)
 
+
 parser = argparse.ArgumentParser(epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                  description="Front-end to JIRA-DLP database.  Choose a "

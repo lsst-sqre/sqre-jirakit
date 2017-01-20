@@ -1,0 +1,80 @@
+#!/bin/env python
+
+"""
+Query the RFC JIRA project and return a list of all open RFCs.
+
+This includes:
+
+- RFCs that are adopted without "is triggering" linked tickets.
+- RFCs that are adopted with "is triggering" where all linked tickets are Done
+
+These are the tickets that require more immediate action.
+
+"""
+from __future__ import print_function
+
+import argparse
+
+import lsst.sqre.jirakit as jirakit
+
+
+parser = argparse.ArgumentParser(epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit",
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                 description="Front-end to JIRA-RFC database.  Choose a "
+                                 "command from the list below; add '-h' for help.")
+
+parser.add_argument('-s', '--server', default=jirakit.SERVER)
+parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
+
+opts = parser.parse_args()
+
+# Send a query to the RFC project
+query = "project=RFC AND status = Adopted ORDER BY key ASC"
+issues = jirakit.get_issues(opts.server, query, max_results=20000)
+print("Retrieved {} candidate ADOPTED RFCs".format(len(issues)))
+
+adopted_done = []
+adopted_no_triggers = []
+
+# Go through each issue checking for is triggering tickets
+for i in issues:
+    triggers = []
+    for link in i.fields.issuelinks:
+        if link.type.name == "Gantt: start-finish":
+            if hasattr(link, "outwardIssue"):
+                triggers.append(link.outwardIssue.key)
+        elif link.type.name == "Duplicate":
+            # I hope this doesn't happen as a duplicate should not be in ADOPTED state
+            print("WARNING: {} is marked as a duplicate".format(i.key))
+
+    if not triggers:
+        adopted_no_triggers.append(i)
+    else:
+        # fetch each triggered issue and examine the state
+        triggering_issues = jirakit.get_issues_by_key(opts.server, triggers)
+        work_todo = False
+        invalids = 0
+        valids = 0
+        for t in triggering_issues:
+            status = str(t.fields.status)
+            if status == "Invalid" or status == "Implemented":
+                # Triggered RFCs don't count as real work
+                invalids += 1
+            else:
+                valids += 1
+                if status != "Done":
+                    work_todo = True
+        if valids == 0 and invalids > 0:
+            # indicates that there are no triggered tickets in reality
+            adopted_no_triggers.append(i)
+        elif not work_todo:
+            adopted_done.append(i)
+
+print("The following RFCs are ADOPTED without triggered work:")
+for i in adopted_no_triggers:
+    print("\t{}: {}".format(i.key, i.fields.summary))
+
+print()
+print("The following RFCs are ADOPTED with all triggered work COMPLETED:")
+for i in adopted_done:
+    print("\t{}: {}".format(i.key, i.fields.summary))

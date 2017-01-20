@@ -35,5 +35,6 @@ class ConfluenceTest(unittest.TestCase):
         table2.append("| a\nb\nc | d\ne |")
         self.assertEqual(confluence.table(headings, col1, col2, onerow=True), os.linesep.join(table2))
 
+
 if __name__ == "__main__":
     unittest.main()

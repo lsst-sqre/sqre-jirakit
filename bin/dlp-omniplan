@@ -34,13 +34,15 @@ def get_blockers(ticket, id_map):
                       hasattr(link, "inwardIssue") and
                       link.inwardIssue.key in id_map])
 
+
 # Map Omnifocus field names to functions which extract the relevant info from
 # a JIRA ticket
 focus_to_jira = OrderedDict([
     ("WBS Number", lambda ticket, id_map: id_map[ticket.key]),
     ("Title", lambda ticket, id_map: ticket.key),
     ("Start", lambda ticket, id_map: "2015-09-01 08:00"),
-    ("End", lambda ticket, id_map: "2015-09-01 %s" % ("08:00" if ticket.fields.issuetype.name == "Milestone" else "17:00",)),
+    ("End", lambda ticket, id_map: "2015-09-01 %s" % ("08:00" if ticket.fields.issuetype.name == "Milestone"
+                                                      else "17:00",)),
     ("Time", lambda ticket, id_map: "1d" if ticket.fields.issuetype.name == "Meta-epic" else ""),
     ("Effort", lambda ticket, id_map: "1d" if ticket.fields.issuetype.name == "Meta-epic" else ""),
     ("%Done", lambda ticket, id_map: "0%"),
@@ -51,7 +53,8 @@ focus_to_jira = OrderedDict([
     ("Planned End", lambda ticket, id_map: ""),
     ("End Variance", lambda ticket, id_map: ""),
     ("Constraint Start", lambda ticket, id_map: ""),
-    ("Constraint End", lambda ticket, id_map: cycle_to_date(jirakit.get_cycle(ticket)) if ticket.fields.fixVersions else ""),
+    ("Constraint End", lambda ticket, id_map: cycle_to_date(jirakit.get_cycle(ticket))
+     if ticket.fields.fixVersions else ""),
     ("Prerequisites", lambda ticket, id_map: get_blockers(ticket, id_map)),
     ("NoteContents", lambda ticket, id_map: ticket.fields.summary),
     ("Priority", lambda ticket, id_map: "0" if ticket.fields.issuetype.name == "Meta-epic" else ""),
@@ -61,18 +64,24 @@ focus_to_jira = OrderedDict([
 
 if __name__ == "__main__":
     wbs_map = OrderedDict([
-        ("02C.04.01", ("App Framework for Catalogs", jirakit.get_issues(jirakit.SERVER,
-                                                                        jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.01")))),
-        ("02C.04.02", ("Calibration Products Pipeline", jirakit.get_issues(jirakit.SERVER,
-                                                                           jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.02")))),
-        ("02C.04.03", ("PSF Estimation", jirakit.get_issues(jirakit.SERVER,
-                                                            jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.03")))),
-        ("02C.04.04", ("Image Coaddition Pipeline", jirakit.get_issues(jirakit.SERVER,
-                                                                       jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.04")))),
-        ("02C.04.05", ("Object Detection and Deblending", jirakit.get_issues(jirakit.SERVER,
-                                                                             jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.05")))),
-        ("02C.04.06", ("Object Characterization Pipeline", jirakit.get_issues(jirakit.SERVER,
-                                                                              jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.06"))))
+        ("02C.04.01", ("App Framework for Catalogs",
+                       jirakit.get_issues(jirakit.SERVER,
+                                          jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.01")))),
+        ("02C.04.02", ("Calibration Products Pipeline",
+                       jirakit.get_issues(jirakit.SERVER,
+                                          jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.02")))),
+        ("02C.04.03", ("PSF Estimation",
+                       jirakit.get_issues(jirakit.SERVER,
+                                          jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.03")))),
+        ("02C.04.04", ("Image Coaddition Pipeline",
+                       jirakit.get_issues(jirakit.SERVER,
+                                          jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.04")))),
+        ("02C.04.05", ("Object Detection and Deblending",
+                       jirakit.get_issues(jirakit.SERVER,
+                                          jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.05")))),
+        ("02C.04.06", ("Object Characterization Pipeline",
+                       jirakit.get_issues(jirakit.SERVER,
+                                          jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.06"))))
     ])
     id_map = {}
     for j, wbs in enumerate(wbs_map, start=1):
@@ -83,7 +92,8 @@ if __name__ == "__main__":
     writer = DictWriter(buf, fieldnames=focus_to_jira.keys())
     writer.writeheader()
     for j, wbs in enumerate(wbs_map, start=1):
-        writer.writerow({"WBS Number": j, "Title": wbs, "Start": "2015-09-01", "NoteContents": wbs_map[wbs][0]})
+        writer.writerow({"WBS Number": j, "Title": wbs, "Start": "2015-09-01",
+                        "NoteContents": wbs_map[wbs][0]})
         for issue in wbs_map[wbs][1]:
             writer.writerow({k: v(issue, id_map) for k, v in focus_to_jira.items()})
     print(buf.getvalue())
