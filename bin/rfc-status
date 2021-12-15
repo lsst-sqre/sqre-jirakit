@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 """
 Query the RFC JIRA project and return a list of all open RFCs.
