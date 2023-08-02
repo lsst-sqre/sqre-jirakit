@@ -17,7 +17,9 @@ from tabulate import tabulate
 from lsst.sqre.jirakit import cycles, dm_to_dlp_cycle, get_issues_by_key
 
 
-def jira2txt(issues, csv=False, show_key=True, show_title=False, url_base=None):
+def jira2txt(
+    issues, csv=False, show_key=True, show_title=False, url_base=None
+):
     def makeRow(wbs, cycles, blank=None):
         row = OrderedDict()
         row["WBS"] = wbs
@@ -51,7 +53,9 @@ def jira2txt(issues, csv=False, show_key=True, show_title=False, url_base=None):
 
         # In CSV mode we can include a URL to the actual issue
         if csv and url_base:
-            row[cyc] = _make_csv_hyperlink_from_issue(url_base, issue, row[cyc])
+            row[cyc] = _make_csv_hyperlink_from_issue(
+                url_base, issue, row[cyc]
+            )
 
         table.append(row)
 
@@ -67,9 +71,9 @@ def jirakpm2txt(issues, server, csv=False, url_base=None):
         row = OrderedDict()
         row["KPM"] = kpm.key
         row["Title"] = kpm.fields.summary
-        row["Target"] = "{} {}".format(
-            kpm.fields.customfield_11000, kpm.fields.customfield_11001
-        )
+        row[
+            "Target"
+        ] = f"{kpm.fields.customfield_11000} {kpm.fields.customfield_11001}"
         for cycle in cycles():
             row[cycle] = blank
         return row
@@ -88,7 +92,8 @@ def jirakpm2txt(issues, server, csv=False, url_base=None):
                 elif hasattr(link, "inwardIssue"):
                     relates.append(link.inwardIssue.key)
             elif link.type.name == "Duplicate":
-                # If this has a Duplicates link we should not be reporting the KPM
+                # If this has a Duplicates link we should not be reporting
+                # the KPM
                 duplicates = True
                 break
 
@@ -99,7 +104,9 @@ def jirakpm2txt(issues, server, csv=False, url_base=None):
 
         # Insert URL to DLP ticket if required
         if csv and url_base:
-            row["KPM"] = _make_csv_hyperlink_from_issue(url_base, i, row["KPM"])
+            row["KPM"] = _make_csv_hyperlink_from_issue(
+                url_base, i, row["KPM"]
+            )
 
         if len(relates):
             related_issues = get_issues_by_key(server, relates)
@@ -115,14 +122,17 @@ def jirakpm2txt(issues, server, csv=False, url_base=None):
                 row[cyc] = dm.fields.customfield_11000
                 if str(dm.fields.customfield_11001) != metric_unit:
                     print(
-                        "{}: Unit mismatch between DLP KPM and {} ({} != {})".format(
+                        "{}: Unit mismatch between DLP KPM and {} \
+                            ({} != {})".format(
                             i, dm, metric_unit, dm.fields.customfield_11001
                         ),
                         file=sys.stderr,
                     )
                 # In CSV mode we can include a URL to the actual issue
                 if csv and url_base:
-                    row[cyc] = _make_csv_hyperlink_from_issue(url_base, dm, row[cyc])
+                    row[cyc] = _make_csv_hyperlink_from_issue(
+                        url_base, dm, row[cyc]
+                    )
 
         table.append(row)
 

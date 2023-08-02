@@ -19,10 +19,11 @@ parser = argparse.ArgumentParser(
     description=textwrap.dedent(
         """
 
-    Generate a side-by-side listing of the SOCS / Scheduler combined workplan in Confluence format.
+    Generate a side-by-side listing of the SOCS / Scheduler combined workplan
+    in Confluence format.
 
-    The output can be piped into a file that can then be cut-and-pasted into a Confluence page via the
-    Markdown menu option.
+    The output can be piped into a file that can then be cut-and-pasted into a
+    Confluence page via the Markdown menu option.
 
     """
     ),
@@ -38,7 +39,9 @@ parser.add_argument(
     default=None,
     help="Path to a file containing basic authentication information",
 )
-parser.add_argument("-v", "--version", action="version", version="%(prog)s 0.1")
+parser.add_argument(
+    "-v", "--version", action="version", version="%(prog)s 0.1"
+)
 
 if __name__ == "__main__":
     opt = parser.parse_args()
@@ -50,18 +53,21 @@ if __name__ == "__main__":
         basic_auth=lsst.sqre.jirakit.basic_auth_from_file(opt.auth_file),
     )
 
-    query = 'project = Simulations AND issuetype = Epic AND summary ~ "SOCS Release" ORDER BY key'
+    query = 'project = Simulations AND issuetype = Epic AND summary ~ \
+        "SOCS Release" ORDER BY key'
     issues = jira_server.search_issues(query)
 
     page_content = []
     import time
 
     page_content.append(
-        "This page provides the coordinated work plan between the Simulated OCS (SOCS) "
-        "and the Scheduler."
+        "This page provides the coordinated work plan between "
+        "the Simulated OCS (SOCS) and the Scheduler."
     )
     page_content.append(
-        "Updated: {0}".format(time.strftime("%Y-%m-%d %H:%M", time.localtime()))
+        "Updated: {0}".format(
+            time.strftime("%Y-%m-%d %H:%M", time.localtime())
+        )
     )
     page_content.append("")
 
@@ -74,14 +80,18 @@ if __name__ == "__main__":
 
         socs_descr = issue.fields.description
         comb_duedate = issue.fields.duedate
-        page_content.append("{0} {1}".format(bold("Release Date:"), comb_duedate))
+        page_content.append(
+            "{0} {1}".format(bold("Release Date:"), comb_duedate)
+        )
         page_content.append("")
 
         socs_work = create_list_from_numbered_description(socs_descr)
 
         # Should only be one!
         sched_epic = jira_server.issue(
-            lsst.sqre.jirakit.get_issue_links(issue, "Relates")[0].outwardIssue.key
+            lsst.sqre.jirakit.get_issue_links(issue, "Relates")[
+                0
+            ].outwardIssue.key
         )
         sched_summary = sched_epic.fields.summary
         sched_descr = sched_epic.fields.description
@@ -94,7 +104,9 @@ if __name__ == "__main__":
             "{0} Workplan".format(sched_summary.split()[0]),
         ]
 
-        page_content.append(table(headings, socs_work, sched_work, onerow=True))
+        page_content.append(
+            table(headings, socs_work, sched_work, onerow=True)
+        )
 
         page_content.append("")
         page_content.append("")

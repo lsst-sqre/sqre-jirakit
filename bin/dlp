@@ -79,7 +79,9 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument("-s", "--server", default=jirakit.SERVER)
-parser.add_argument("-v", "--version", action="version", version="%(prog)s 0.5")
+parser.add_argument(
+    "-v", "--version", action="version", version="%(prog)s 0.5"
+)
 
 subparsers = parser.add_subparsers(dest="mode")
 # http://stackoverflow.com/questions/23349349/argparse-with-required-subparser
@@ -107,7 +109,9 @@ parser_csv.add_argument(
     default=False,
     help="Do not include hyperlinks in CSV output",
 )
-parser_csv.add_argument("-w", "--wbs", default=DEFAULT_WBS, help="Limit results by WBS")
+parser_csv.add_argument(
+    "-w", "--wbs", default=DEFAULT_WBS, help="Limit results by WBS"
+)
 parser_csv.set_defaults(func=generate_txt)
 
 parser_tab = subparsers.add_parser(
@@ -127,7 +131,9 @@ parser_tab.add_argument(
     action="store_true",
     help="Do not show the JIRA issue key in the table cell",
 )
-parser_tab.add_argument("-w", "--wbs", default=DEFAULT_WBS, help="Limit results by WBS")
+parser_tab.add_argument(
+    "-w", "--wbs", default=DEFAULT_WBS, help="Limit results by WBS"
+)
 parser_tab.set_defaults(func=generate_txt)
 
 parser_dot = subparsers.add_parser(
@@ -135,7 +141,9 @@ parser_dot = subparsers.add_parser(
     help="Generate GraphViz output",
     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
 )
-parser_dot.add_argument("-w", "--wbs", default=DEFAULT_WBS, help="Limit results by WBS")
+parser_dot.add_argument(
+    "-w", "--wbs", default=DEFAULT_WBS, help="Limit results by WBS"
+)
 parser_dot.set_defaults(func=generate_dot)
 
 parser_serve = subparsers.add_parser(

@@ -28,13 +28,16 @@ class ConfluenceTest(unittest.TestCase):
         headings = ["A", "B"]
         col1 = ["a", "b", "c"]
         col2 = ["d", "e"]
-        self.assertEqual(confluence.table(headings, col1, col2), os.linesep.join(table))
+        self.assertEqual(
+            confluence.table(headings, col1, col2), os.linesep.join(table)
+        )
 
         table2 = []
         table2.append("|| A || B ||")
         table2.append("| a\nb\nc | d\ne |")
         self.assertEqual(
-            confluence.table(headings, col1, col2, onerow=True), os.linesep.join(table2)
+            confluence.table(headings, col1, col2, onerow=True),
+            os.linesep.join(table2),
         )
 
 

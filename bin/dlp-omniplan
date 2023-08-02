@@ -50,7 +50,11 @@ focus_to_jira = OrderedDict(
         (
             "End",
             lambda ticket, id_map: "2015-09-01 %s"
-            % ("08:00" if ticket.fields.issuetype.name == "Milestone" else "17:00",),
+            % (
+                "08:00"
+                if ticket.fields.issuetype.name == "Milestone"
+                else "17:00",
+            ),
         ),
         (
             "Time",
@@ -100,7 +104,9 @@ if __name__ == "__main__":
                     "App Framework for Catalogs",
                     jirakit.get_issues(
                         jirakit.SERVER,
-                        jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.01"),
+                        jirakit.build_query(
+                            ("Milestone", "Meta-epic"), "02C.04.01"
+                        ),
                     ),
                 ),
             ),
@@ -110,7 +116,9 @@ if __name__ == "__main__":
                     "Calibration Products Pipeline",
                     jirakit.get_issues(
                         jirakit.SERVER,
-                        jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.02"),
+                        jirakit.build_query(
+                            ("Milestone", "Meta-epic"), "02C.04.02"
+                        ),
                     ),
                 ),
             ),
@@ -120,7 +128,9 @@ if __name__ == "__main__":
                     "PSF Estimation",
                     jirakit.get_issues(
                         jirakit.SERVER,
-                        jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.03"),
+                        jirakit.build_query(
+                            ("Milestone", "Meta-epic"), "02C.04.03"
+                        ),
                     ),
                 ),
             ),
@@ -130,7 +140,9 @@ if __name__ == "__main__":
                     "Image Coaddition Pipeline",
                     jirakit.get_issues(
                         jirakit.SERVER,
-                        jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.04"),
+                        jirakit.build_query(
+                            ("Milestone", "Meta-epic"), "02C.04.04"
+                        ),
                     ),
                 ),
             ),
@@ -140,7 +152,9 @@ if __name__ == "__main__":
                     "Object Detection and Deblending",
                     jirakit.get_issues(
                         jirakit.SERVER,
-                        jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.05"),
+                        jirakit.build_query(
+                            ("Milestone", "Meta-epic"), "02C.04.05"
+                        ),
                     ),
                 ),
             ),
@@ -150,7 +164,9 @@ if __name__ == "__main__":
                     "Object Characterization Pipeline",
                     jirakit.get_issues(
                         jirakit.SERVER,
-                        jirakit.build_query(("Milestone", "Meta-epic"), "02C.04.06"),
+                        jirakit.build_query(
+                            ("Milestone", "Meta-epic"), "02C.04.06"
+                        ),
                     ),
                 ),
             ),
@@ -174,5 +190,7 @@ if __name__ == "__main__":
             }
         )
         for issue in wbs_map[wbs][1]:
-            writer.writerow({k: v(issue, id_map) for k, v in focus_to_jira.items()})
+            writer.writerow(
+                {k: v(issue, id_map) for k, v in focus_to_jira.items()}
+            )
     print(buf.getvalue())

@@ -20,7 +20,10 @@ def attr_func(issue):
 
 
 def rank_func(issue):
-    if issue.fields.issuetype.name == "Milestone" and len(issue.fields.fixVersions) > 0:
+    if (
+        issue.fields.issuetype.name == "Milestone"
+        and len(issue.fields.fixVersions) > 0
+    ):
         return issue.fields.fixVersions[0]
     return None
 
@@ -33,17 +36,21 @@ def jira2dot(
     ranks=None,
     diag_name="Diagram",
 ):
-    """Generate a GraphViz dot file displaying the relationships between JIRA issues.
+    """Generate a GraphViz dot file displaying the relationships between
+    JIRA issues.
 
     Arguments:
       issues ---------------- Iterable of issues to process
       link_types ------------ Sequence of link types to include in the graph
-      attr_func ------------- Callback function that takes a jira.Issue object and returns a sequence
-                              of GraphViz attribute key/value pairs (e.g. "shape=box")
-      rank_func ------------- Callback function that takes a jira.Issue object and returns a string
-                              that the issue should be sorted by - typically a release version or cycle.
-      rank ------------------ An ordered sequence of rank strings to sort issues by (only affects issues
-                              for which rank_func returns a result other than None)
+      attr_func ------------- Callback function that takes a jira.Issue object
+                              and returns a sequence of GraphViz attribute
+                              key/value pairs (e.g. "shape=box")
+      rank_func ------------- Callback function that takes a jira.Issue object
+                              and returns a string that the issue should be
+                              sorted by - typically a release version or cycle.
+      rank ------------------ An ordered sequence of rank strings to sort
+                              issues by (only affects issues for which
+                              rank_func returns a result other than None)
       diag_name ------------- Name for the top-level graph node.
     """
     output = StringIO()
@@ -70,12 +77,17 @@ def jira2dot(
 
         # Get the owner (WBS or Team) for the issue
         issuetype = issue.fields.issuetype.name
-        if issuetype == "Milestone" or issuetype == "Meta-epic" or issuetype == "Epic":
+        if (
+            issuetype == "Milestone"
+            or issuetype == "Meta-epic"
+            or issuetype == "Epic"
+        ):
             owner = issue.fields.customfield_10500  # WBS
         else:
             owner = issue.fields.customfield_10502.value  # Team
 
-        # Generate a fancy label containing the issue key, the owner (WBS or Team), and summary.
+        # Generate a fancy label containing:
+        # the issue key, the owner (WBS or Team), and summary.
         summary = issue.fields.summary.replace("&", "&amp;")
         label = """
         label=
@@ -121,9 +133,7 @@ def jira2dot(
                 if hasattr(link, "outwardIssue"):
                     if link.outwardIssue.key in by_key:
                         output.write(
-                            '  "{0.key}" -> "{1.key}"\n'.format(
-                                issue, link.outwardIssue
-                            )
+                            f'  "{issue.key}" -> "{link.outwardIssue.key}"\n'
                         )
                     else:
                         logging.debug(
@@ -133,9 +143,8 @@ def jira2dot(
                         )
                 else:
                     logging.debug(
-                        "Skipping inward link {0.key} -> {1.key}".format(
-                            link.inwardIssue, issue
-                        )
+                        f"Skipping inward link \
+                            {link.inwardIssue.key} -> {issue.key}"
                     )
 
     output.write("}\n")

@@ -22,10 +22,11 @@ parser = argparse.ArgumentParser(
     description=textwrap.dedent(
         """
 
-    Generate a full listing of the SOCS workplan possibly including issues in Confluence format.
+    Generate a full listing of the SOCS workplan possibly including issues in
+    Confluence format.
 
-    The output can be piped into a file that can then be cut-and-pasted into a Confluence page via the
-    Markdown menu option.
+    The output can be piped into a file that can then be cut-and-pasted into a
+    Confluence page via the Markdown menu option.
 
     """
     ),
@@ -48,7 +49,9 @@ parser.add_argument(
     default=False,
     help="Flag for adding table of issues assigned to epics",
 )
-parser.add_argument("-v", "--version", action="version", version="%(prog)s 0.1")
+parser.add_argument(
+    "-v", "--version", action="version", version="%(prog)s 0.1"
+)
 
 if __name__ == "__main__":
     opt = parser.parse_args()
@@ -60,7 +63,8 @@ if __name__ == "__main__":
         basic_auth=lsst.sqre.jirakit.basic_auth_from_file(opt.auth_file),
     )
 
-    query = 'project = Simulations AND issuetype = Epic AND summary ~ "SOCS Release" ORDER BY key'
+    query = 'project = Simulations AND issuetype = Epic AND summary ~ \
+        "SOCS Release" ORDER BY key'
     issues = jira_server.search_issues(query)
 
     page_content = []
@@ -68,7 +72,9 @@ if __name__ == "__main__":
 
     page_content.append("This page details the SOCS workplan.")
     page_content.append(
-        "Updated: {0}".format(time.strftime("%Y-%m-%d %H:%M", time.localtime()))
+        "Updated: {0}".format(
+            time.strftime("%Y-%m-%d %H:%M", time.localtime())
+        )
     )
     page_content.append("")
 
@@ -78,7 +84,9 @@ if __name__ == "__main__":
         socs_summary = issue.fields.summary
         page_content.append(heading(socs_summary, 2))
         socs_duedate = issue.fields.duedate
-        page_content.append("{0} {1}".format(bold("Release Date:"), socs_duedate))
+        page_content.append(
+            "{0} {1}".format(bold("Release Date:"), socs_duedate)
+        )
         page_content.append("")
 
         page_content.append(heading("Statement of Work", 3))
@@ -87,7 +95,9 @@ if __name__ == "__main__":
         page_content.append(os.linesep.join(socs_work))
         page_content.append("")
 
-        sub_epic_links = lsst.sqre.jirakit.get_issue_links(issue, "Containment")
+        sub_epic_links = lsst.sqre.jirakit.get_issue_links(
+            issue, "Containment"
+        )
         sub_epics = [
             jira_server.issue(sub_epic_link.outwardIssue.key)
             for sub_epic_link in sub_epic_links
@@ -102,16 +112,22 @@ if __name__ == "__main__":
                 se_issues = jira_server.search_issues(
                     "'Epic Link' = '{0}'".format(sub_epic.fields.summary)
                 )
-                page_content.append("Number of Issues = {0}".format(len(se_issues)))
+                page_content.append(
+                    "Number of Issues = {0}".format(len(se_issues))
+                )
                 page_content.append("")
                 if len(se_issues) > 0:
                     headers = ["Key", "Description", "Status"]
                     keys = [se_issue.key for se_issue in se_issues]
-                    summaries = [se_issue.fields.summary for se_issue in se_issues]
+                    summaries = [
+                        se_issue.fields.summary for se_issue in se_issues
+                    ]
                     status_names = [
                         se_issue.fields.status.name for se_issue in se_issues
                     ]
-                    page_content.append(table(headers, keys, summaries, status_names))
+                    page_content.append(
+                        table(headers, keys, summaries, status_names)
+                    )
                     page_content.append("")
 
     print(os.linesep.join(page_content))

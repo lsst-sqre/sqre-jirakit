@@ -13,7 +13,9 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument("-s", "--server", default=jirakit.SERVER)
-parser.add_argument("-v", "--version", action="version", version="%(prog)s 0.5")
+parser.add_argument(
+    "-v", "--version", action="version", version="%(prog)s 0.5"
+)
 
 subparsers = parser.add_subparsers(dest="mode")
 # http://stackoverflow.com/questions/23349349/argparse-with-required-subparser
@@ -42,7 +44,9 @@ opts = parser.parse_args()
 if not hasattr(opts, "no_url"):
     opts.no_url = True
 
-issues = jirakit.get_issues(opts.server, jirakit.build_query(('"Key Metric"',), None))
+issues = jirakit.get_issues(
+    opts.server, jirakit.build_query(('"Key Metric"',), None)
+)
 
 print(
     j2txt.jirakpm2txt(

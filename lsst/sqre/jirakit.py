@@ -1,5 +1,6 @@
 """
-Module for helper apps relating to the LSST-DM reporting cycle and LSST-SIMS work planning.
+Module for helper apps relating to the LSST-DM reporting cycle and LSST-SIMS
+work planning.
 """
 
 from __future__ import print_function
@@ -46,8 +47,10 @@ def build_query(issue_types, wbs):
         )
     else:
         return (
-            'project = DLP AND issuetype in (%s) AND wbs ~ "%s"'
-            "ORDER BY wbs ASC, fixVersion DESC" % (", ".join(issue_types), wbs)
+            'project = DLP AND issuetype in ({}) AND wbs ~ "{}"'
+            "ORDER BY wbs ASC, fixVersion DESC".format(
+                ", ".join(issue_types), wbs
+            )
         )
 
 
@@ -75,7 +78,9 @@ def get_issue_links(issue, linkTypeName=None):
 
 
 def get_issues(server, query, max_results=MAX_RESULTS):
-    return JIRA(dict(server=server)).search_issues(query, maxResults=max_results)
+    return JIRA(dict(server=server)).search_issues(
+        query, maxResults=max_results
+    )
 
 
 def get_issues_by_key(server, keys):
@@ -105,7 +110,11 @@ def get_cycle(issue):
 
 def good_block(blocker, blocked, compare_fn=compare):
     # Return True for a well ordered block, False for reversed
-    return True if compare_fn(get_cycle(blocker), get_cycle(blocked)) <= 0 else False
+    return (
+        True
+        if compare_fn(get_cycle(blocker), get_cycle(blocked)) <= 0
+        else False
+    )
 
 
 def get_dependents(key, issues, visited=None):
@@ -152,7 +161,10 @@ def get_unscheduled_milestones(issues):
         key
         for key, issue in issues.items()
         if issue.fields.issuetype.name == "Milestone"
-        and (not hasattr(issue.fields, "fixVersions") or not issue.fields.fixVersions)
+        and (
+            not hasattr(issue.fields, "fixVersions")
+            or not issue.fields.fixVersions
+        )
     ]
 
 
@@ -190,7 +202,9 @@ def check_sanity(issues):
             "Milestone %s [%s] is not scheduled in any cycle.\n"
             % (key, issues[key].fields.customfield_10500)
         )
-        del issues[key]  # Trim the issue so it doesn't break the bad blocks check
+        del issues[
+            key
+        ]  # Trim the issue so it doesn't break the bad blocks check
 
     # Check for milestones which are scheduled in more than one cycle
     for key in sorted(get_multiply_scheduled_milestones(issues)):
