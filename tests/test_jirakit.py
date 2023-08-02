@@ -3,7 +3,7 @@
 
 import unittest
 
-import lsst.sqre.jirakit as jirakit
+import src.lsst.sqre.jirakit as jirakit
 
 
 class JiraKitTest(unittest.TestCase):

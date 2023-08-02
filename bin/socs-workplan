@@ -7,9 +7,9 @@ import argparse
 import textwrap
 
 # in-house modules
-import lsst.sqre.jirakit
-from lsst.sqre.confluence import bold, heading, table
-from lsst.sqre.jira2confluence import (
+import src.lsst.sqre.jirakit
+from src.lsst.sqre.confluence import bold, heading, table
+from src.lsst.sqre.jira2confluence import (
     check_description,
     create_list_from_numbered_description,
 )
@@ -34,7 +34,10 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument(
-    "-s", "--server", default=lsst.sqre.jirakit.SERVER, help="JIRA server URL"
+    "-s",
+    "--server",
+    default=src.lsst.sqre.jirakit.SERVER,
+    help="JIRA server URL",
 )
 parser.add_argument(
     "-a",
@@ -60,7 +63,7 @@ if __name__ == "__main__":
 
     jira_server = JIRA(
         server=opt.server,
-        basic_auth=lsst.sqre.jirakit.basic_auth_from_file(opt.auth_file),
+        basic_auth=src.lsst.sqre.jirakit.basic_auth_from_file(opt.auth_file),
     )
 
     query = 'project = Simulations AND issuetype = Epic AND summary ~ \
@@ -95,7 +98,7 @@ if __name__ == "__main__":
         page_content.append(os.linesep.join(socs_work))
         page_content.append("")
 
-        sub_epic_links = lsst.sqre.jirakit.get_issue_links(
+        sub_epic_links = src.lsst.sqre.jirakit.get_issue_links(
             issue, "Containment"
         )
         sub_epics = [

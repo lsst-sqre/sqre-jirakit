@@ -4,8 +4,8 @@ from __future__ import print_function
 
 import argparse
 
-import lsst.sqre.jira2txt as j2txt
-import lsst.sqre.jirakit as jirakit
+import src.lsst.sqre.jira2txt as j2txt
+import src.lsst.sqre.jirakit as jirakit
 
 parser = argparse.ArgumentParser(
     epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit",

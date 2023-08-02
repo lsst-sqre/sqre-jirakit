@@ -5,10 +5,10 @@ from __future__ import print_function
 import argparse
 import sys
 
-import lsst.sqre.jirakit as jirakit
-from lsst.sqre.jira2dot import attr_func, jira2dot, rank_func
-from lsst.sqre.jira2txt import jira2txt
-from lsst.sqre.jiraserver import build_server
+import src.lsst.sqre.jirakit as jirakit
+from src.lsst.sqre.jira2dot import attr_func, jira2dot, rank_func
+from src.lsst.sqre.jira2txt import jira2txt
+from src.lsst.sqre.jiraserver import build_server
 
 DEFAULT_WBS = "02*"
 

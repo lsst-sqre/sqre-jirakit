@@ -3,7 +3,7 @@
 
 import unittest
 
-import lsst.sqre.confluence as confluence
+import src.lsst.sqre.confluence as confluence
 
 
 class ConfluenceTest(unittest.TestCase):

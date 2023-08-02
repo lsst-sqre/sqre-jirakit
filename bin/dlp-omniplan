@@ -14,7 +14,7 @@ from collections import OrderedDict
 from csv import DictWriter
 from io import BytesIO
 
-import lsst.sqre.jirakit as jirakit
+import src.lsst.sqre.jirakit as jirakit
 
 
 def cycle_to_date(cycle):
