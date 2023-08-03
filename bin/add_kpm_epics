@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-from jira.utils import JIRAError
-from jira import JIRA
 
-import sys
 import argparse
+import sys
 import textwrap
 
+from jira import JIRA
+from jira.utils import JIRAError
 
 if sys.version[0] < 3:
     # called raw_input on python2

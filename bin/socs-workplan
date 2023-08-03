@@ -8,12 +8,11 @@ import textwrap
 
 # in-house modules
 import lsst.sqre.jirakit
-
-from lsst.sqre.jira2confluence import check_description
-from lsst.sqre.jira2confluence import create_list_from_numbered_description
-from lsst.sqre.confluence import bold
-from lsst.sqre.confluence import heading
-from lsst.sqre.confluence import table
+from lsst.sqre.confluence import bold, heading, table
+from lsst.sqre.jira2confluence import (
+    check_description,
+    create_list_from_numbered_description,
+)
 
 # argument parsing and default options
 

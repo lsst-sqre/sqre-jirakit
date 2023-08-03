@@ -2,8 +2,8 @@ from __future__ import print_function
 
 import io
 import sys
-from csv import DictWriter
 from collections import OrderedDict
+from csv import DictWriter
 
 try:
     # Python 3

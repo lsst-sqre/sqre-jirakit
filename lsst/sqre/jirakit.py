@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import re
 from io import StringIO
+
 from jira import JIRA
 
 SERVER = "https://jira.lsstcorp.org/"

@@ -9,11 +9,12 @@ OmniPlan is at `https://www.omnigroup.com/omniplan`_.
 """
 from __future__ import print_function
 
-import lsst.sqre.jirakit as jirakit
 from calendar import monthrange
 from collections import OrderedDict
 from csv import DictWriter
 from io import BytesIO
+
+import lsst.sqre.jirakit as jirakit
 
 
 def cycle_to_date(cycle):

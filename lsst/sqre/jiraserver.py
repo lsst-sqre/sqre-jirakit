@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-import flask
-import graphviz
-
 import os
 from contextlib import contextmanager
 from functools import partial
 from shutil import rmtree
 from tempfile import mkdtemp
+
+import flask
+import graphviz
 
 try:
     # Python 3
@@ -16,9 +16,9 @@ except ImportError:
     # Python 2
     from urlparse import urljoin
 
-from lsst.sqre.jira2dot import jira2dot, attr_func, rank_func
+from lsst.sqre.jira2dot import attr_func, jira2dot, rank_func
 from lsst.sqre.jira2txt import jira2txt, jirakpm2txt
-from lsst.sqre.jirakit import build_query, cycles, get_issues, check_sanity, SERVER
+from lsst.sqre.jirakit import SERVER, build_query, check_sanity, cycles, get_issues
 
 DEFAULT_FMT = "pdf"
 
