@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-from jira.utils import JIRAError
-from jira import JIRA
 
-import sys
 import argparse
+import sys
 import textwrap
 
+from jira import JIRA
+from jira.utils import JIRAError
 
 if sys.version[0] < 3:
     # called raw_input on python2
@@ -15,26 +15,40 @@ if sys.version[0] < 3:
 
 
 def checkArguments(args, jiraInst):
-    """ Check the input arguments for obvious errors like misspelled cycles or team names.
+    """Check the input arguments for obvious errors like misspelled cycles or
+    team names.
     param[in] args  Parsed commandline arguments
     param[in] jiraInst  Instance of a JIRA object to use in validation effort.
     """
     # Get metadata for Epics in the DM project.
-    issueMetadata = jiraInst.createmeta(projectKeys='DM', issuetypeNames='Epic',
-                                        expand='projects.issuetypes.fields')
+    issueMetadata = jiraInst.createmeta(
+        projectKeys="DM",
+        issuetypeNames="Epic",
+        expand="projects.issuetypes.fields",
+    )
 
-    # issueMetadata is a deeply nested structure.  Traverse to the appropriate level only once.
-    fields = issueMetadata['projects'][0]['issuetypes'][0]['fields']
+    # issueMetadata is a deeply nested structure.
+    # Traverse to the appropriate level only once.
+    fields = issueMetadata["projects"][0]["issuetypes"][0]["fields"]
 
     # check value, cycle, unit are the same size
-    if not (len(args.value) == len(args.unit) and len(args.unit) == len(args.cycle)):
-        raise ValueError("Length of values (%i), units (%i) and cycles (%i) do not match" %
-                         (len(args.value), len(args.unit), len(args.cycle)))
+    if not (
+        len(args.value) == len(args.unit) and len(args.unit) == len(args.cycle)
+    ):
+        raise ValueError(
+            "Length of values (%i), units (%i) and cycles (%i) do not match"
+            % (len(args.value), len(args.unit), len(args.cycle))
+        )
 
     # check that the team is valid 10502 is the team field in the DM project
-    teams = [el['value'] for el in fields['customfield_10502']['allowedValues']]
+    teams = [
+        el["value"] for el in fields["customfield_10502"]["allowedValues"]
+    ]
     if args.team not in teams:
-        raise ValueError("Specified team, %s, does not exist in the DM project" % (args.team))
+        raise ValueError(
+            "Specified team, %s, does not exist in the DM project"
+            % (args.team)
+        )
 
     # check DLP issue exists
     try:
@@ -43,20 +57,24 @@ def checkArguments(args, jiraInst):
         raise ValueError("Couldn't find KPM issue to link: %s" % (args.kpmId))
 
     # check that each cycle is valid
-    cycles = [el['value'] for el in fields['customfield_10900']['allowedValues']]
+    cycles = [
+        el["value"] for el in fields["customfield_10900"]["allowedValues"]
+    ]
     for cycle in args.cycle:
         if cycle not in cycles:
             raise ValueError("Invalid cycle provided: %s" % (cycle))
 
     if not args.assignee:
-        assignee = input("No assignee specified.  Press enter to leave unassigned: ")
+        assignee = input(
+            "No assignee specified.  Press enter to leave unassigned: "
+        )
         if not assignee == "":
             args.assignee = assignee
 
 
 def getCredentials():
-    """ Get Jira credentials.  Currently, this just asks for the username and password, but
-    I hope we can do this with OAuth in the future.
+    """Get Jira credentials.  Currently, this just asks for the username and
+    password, but I hope we can do this with OAuth in the future.
     returns username, password
     """
     username = input("Enter username: ")
@@ -64,17 +82,22 @@ def getCredentials():
     return username, password
 
 
-def makeEpics(jiraInst, kpmId, team, wbs, assignee, unit, values, cycles, dryrun):
-    """ Create the epics in Jira
+def makeEpics(
+    jiraInst, kpmId, team, wbs, assignee, unit, values, cycles, dryrun
+):
+    """Create the epics in Jira
     param[in] jiraInst  An instance of a JIRA object authenticated if necessary
     param[in] kpmId  Key for a KPM issue.
     param[in] team  A valid team name
     param[in] wbs  A WBS string to assign to the epic
-    param[in] assignee  Assignee to give this epic to.  None will leave unassigned.
+    param[in] assignee  Assignee to give this epic to.
+        None will leave unassigned.
     param[in] unit  Units of the values
     param[in] values  Iterable of KPM values
-    param[in] cycles  Iterable of cycle names (expected to be the same length as values)
-    param[in] dryrun  If True, only print out the information that would have been ingested.
+    param[in] cycles  Iterable of cycle names
+        (expected to be the same length as values)
+    param[in] dryrun  If True, only print out the information
+        that would have been ingested.
     """
 
     """
@@ -101,21 +124,34 @@ def makeEpics(jiraInst, kpmId, team, wbs, assignee, unit, values, cycles, dryrun
         if cycle is None:
             raise ValueError("Cycles cannot be None")
         epic_name = "KPM: %s, FY%s" % (linkIssue.fields.summary, cycle[-2:])
-        summary = "KPM Measurement: %s, FY%s" % (linkIssue.fields.summary, cycle[-2:])
+        summary = "KPM Measurement: %s, FY%s" % (
+            linkIssue.fields.summary,
+            cycle[-2:],
+        )
 
         if not dryrun:
-            new_issue = jiraInst.create_issue(project={'id': 10501}, issuetype={'name': 'Epic'},
-                                              customfield_10207=epic_name, assignee={'name': assignee},
-                                              summary=summary, customfield_10500=wbs,
-                                              customfield_11000=value, customfield_11001=unit,
-                                              customfield_10502={'value': team},
-                                              customfield_10900={'value': cycle})
+            new_issue = jiraInst.create_issue(
+                project={"id": 10501},
+                issuetype={"name": "Epic"},
+                customfield_10207=epic_name,
+                assignee={"name": assignee},
+                summary=summary,
+                customfield_10500=wbs,
+                customfield_11000=value,
+                customfield_11001=unit,
+                customfield_10502={"value": team},
+                customfield_10900={"value": cycle},
+            )
 
             # Issue links need to be made sepavrately
-            jiraInst.create_issue_link(type="Relates", inwardIssue=new_issue.key, outwardIssue=kpmId)
+            jiraInst.create_issue_link(
+                type="Relates", inwardIssue=new_issue.key, outwardIssue=kpmId
+            )
             print("Created Epic: %s" % (new_issue.key))
         else:
-            print(textwrap.dedent("""
+            print(
+                textwrap.dedent(
+                    """
             *****************************
             Epic Title: %s
             Epic Summary: %s
@@ -125,38 +161,68 @@ def makeEpics(jiraInst, kpmId, team, wbs, assignee, unit, values, cycles, dryrun
             Metric unit: %s
             Team: %s
             Cycle: %s
-            *****************************\n""" % (epic_name, summary, assignee,
-                                                  wbs, value, unit, team, cycle)))
+            *****************************\n"""
+                    % (
+                        epic_name,
+                        summary,
+                        assignee,
+                        wbs,
+                        value,
+                        unit,
+                        team,
+                        cycle,
+                    )
+                )
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     description = """
-    Utility to add epics to a particular project to specify when a particular value of the
-    metric should be reached.  Values, units, and development cycle are specified as commandline
-    arguments.  Values and cycles are read left to right and grouped in that order.  In other words, the
-    number of value and cycle arguments must be the same and they must be in the same order.  The units
-    are assumed to be the same for all cycles.
+    Utility to add epics to a particular project to specify when a particular
+    value of the metric should be reached.  Values, units, and development
+    cycle are specified as commandline arguments.  Values and cycles are read
+    left to right and grouped in that order.  In other words, the number of
+    value and cycle arguments must be the same and they must be in the same
+    order.  The units are assumed to be the same for all cycles.
 
-    This only works for plugging epics into the DM project since the schema differs from project
-    to project.
+    This only works for plugging epics into the DM project since the schema
+    differs from project to project.
     """
 
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('team', type=str, help='Team to associate with each Epic.')
-    parser.add_argument('kpmId', type=str,
-                        help='This is the name of the DLP issue that points to this KPM: e.g. DLP-314')
-    parser.add_argument('wbs', type=str, help='WBS to assign to epic.')
-    parser.add_argument('--unit', type=str, help='Units of the value, e.g. arcseconds')
-    parser.add_argument('--value', type=float, nargs='+',
-                        help='Value of the KPM to achieve in a particular cycle.  There should be a '
-                             'corresponding --cycle argument.  N.b. Jira numeric fields do not have '
-                             'much precision, so powers of 10 should be used in the units to bring the value '
-                             'into the range -10-10.')
-    parser.add_argument('--cycle', type=str, nargs='+',
-                        help='Cycle in which the KPM value must be reached, e.g. Summer 2019')
-    parser.add_argument('--assignee', type=str, default=None)
-    parser.add_argument('--server', type=str, default='https://jira.lsstcorp.org')
-    parser.add_argument('--dryrun', action='store_true')
+    parser.add_argument(
+        "team", type=str, help="Team to associate with each Epic."
+    )
+    parser.add_argument(
+        "kpmId",
+        type=str,
+        help="This is the name of the DLP issue that points to this KPM: \
+            e.g. DLP-314",
+    )
+    parser.add_argument("wbs", type=str, help="WBS to assign to epic.")
+    parser.add_argument(
+        "--unit", type=str, help="Units of the value, e.g. arcseconds"
+    )
+    parser.add_argument(
+        "--value",
+        type=float,
+        nargs="+",
+        help="Value of the KPM to achieve in a particular cycle.  There "
+        "should be a corresponding --cycle argument.  N.b. Jira numeric "
+        "fields do not have much precision, so powers of 10 should be used in "
+        "the units to bring the value into the range -10-10.",
+    )
+    parser.add_argument(
+        "--cycle",
+        type=str,
+        nargs="+",
+        help="Cycle in which the KPM value must be reached, e.g. Summer 2019",
+    )
+    parser.add_argument("--assignee", type=str, default=None)
+    parser.add_argument(
+        "--server", type=str, default="https://jira.lsstcorp.org"
+    )
+    parser.add_argument("--dryrun", action="store_true")
     args = parser.parse_args()
 
     username, password = getCredentials(args.server)
@@ -165,5 +231,14 @@ if __name__ == '__main__':
 
     checkArguments(args, jiraInst)
 
-    makeEpics(jiraInst, args.kpmId, args.team, args.wbs, args.assignee, args.unit, args.value,
-              args.cycle, args.dryrun)
+    makeEpics(
+        jiraInst,
+        args.kpmId,
+        args.team,
+        args.wbs,
+        args.assignee,
+        args.unit,
+        args.value,
+        args.cycle,
+        args.dryrun,
+    )
