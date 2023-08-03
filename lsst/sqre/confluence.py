@@ -10,12 +10,12 @@ except ImportError:
 
 def bold(text):
     """Make Confluence bold text."""
-    return "*{0}*".format(text)
+    return f"*{text}*"
 
 
 def heading(title, level=1):
     """Make a Confluence heading level."""
-    return "h{0}. {1}".format(level, title)
+    return f"h{level}. {title}"
 
 
 def table(headings, *columns, **kwargs):

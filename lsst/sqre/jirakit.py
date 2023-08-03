@@ -3,7 +3,6 @@ Module for helper apps relating to the LSST-DM reporting cycle and LSST-SIMS
 work planning.
 """
 
-from __future__ import print_function
 
 import re
 from io import StringIO
@@ -15,7 +14,7 @@ MAX_RESULTS = None  # Fetch all results
 
 
 def cycles():
-    return [
+    return (
         "S14",
         "W15",
         "S15",
@@ -36,7 +35,7 @@ def cycles():
         "S22",
         "F22",
         "W22",
-    ]
+    )
 
 
 def build_query(issue_types, wbs):
@@ -61,7 +60,7 @@ def basic_auth_from_file(auth_file_path=None):
 
         auth_file_path = os.path.join(os.path.expanduser("~/"), ".jira_auth")
 
-    with open(auth_file_path, "r") as fd:
+    with open(auth_file_path) as fd:
         uname = fd.readline().strip()  # Can't hurt to be paranoid
         pwd = fd.readline().strip()
 
@@ -92,7 +91,7 @@ def get_issues_by_key(server, keys):
     return get_issues(server, query, max_results=None)
 
 
-def compare(a, b, ordering=list(cycles())):
+def compare(a, b, ordering=cycles()):
     # Returns negative if a appears before b in ordering, zero if a
     # and b are at the same position, positive if a is after b.
     if ordering.index(a) < ordering.index(b):
@@ -199,8 +198,9 @@ def check_sanity(issues):
     # Check for unscheduled milestones
     for key in sorted(get_unscheduled_milestones(issues)):
         output.write(
-            "Milestone %s [%s] is not scheduled in any cycle.\n"
-            % (key, issues[key].fields.customfield_10500)
+            "Milestone {} [{}] is not scheduled in any cycle.\n".format(
+                key, issues[key].fields.customfield_10500
+            )
         )
         del issues[
             key
@@ -209,8 +209,7 @@ def check_sanity(issues):
     # Check for milestones which are scheduled in more than one cycle
     for key in sorted(get_multiply_scheduled_milestones(issues)):
         output.write(
-            "Milestone %s [%s] scheduled in multiple cycles: %s.\n"
-            % (
+            "Milestone {} [{}] scheduled in multiple cycles: {}.\n".format(
                 key,
                 issues[key].fields.customfield_10500,
                 ", ".join(v.name for v in issues[key].fields.fixVersions),
@@ -221,8 +220,7 @@ def check_sanity(issues):
     for key in sorted(get_scheduled_issues(issues, "Meta-epic")):
         issue = issues[key]
         output.write(
-            "%s %s [%s] has been scheduled: %s.\n"
-            % (
+            "{} {} [{}] has been scheduled: {}.\n".format(
                 issue.fields.issuetype.name,
                 key,
                 issue.fields.customfield_10500,
@@ -234,8 +232,7 @@ def check_sanity(issues):
     bad_blocks = get_bad_blocks(issues)
     for blocker, blocked in bad_blocks:
         output.write(
-            "%s (%s) [%s] blocks %s (%s) [%s].\n"
-            % (
+            "{} ({}) [{}] blocks {} ({}) [{}].\n".format(
                 blocker,
                 get_cycle(issues[blocker]),
                 issues[blocker].fields.customfield_10500,
@@ -261,6 +258,6 @@ def dm_to_dlp_cycle(dmcycle):
     matched = matcher.search(str(dmcycle))
     if matched:
         parts = matched.groups()
-        return "{0}{1}".format(*(s.upper() for s in parts))
+        return "{}{}".format(*(s.upper() for s in parts))
     else:
-        raise ValueError("Supplied cycle {} is non-standard".format(dmcycle))
+        raise ValueError(f"Supplied cycle {dmcycle} is non-standard")

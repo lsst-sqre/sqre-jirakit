@@ -23,5 +23,5 @@ def create_list_from_numbered_description(desrc, bulletType="*"):
         if listnum[-1] == "":
             lenlist -= 1
         numbered = bulletType * lenlist
-        olist.append("{0} {1}".format(numbered, " ".join(values[1:])))
+        olist.append("{} {}".format(numbered, " ".join(values[1:])))
     return olist

@@ -54,7 +54,7 @@ def jira2dot(
       diag_name ------------- Name for the top-level graph node.
     """
     output = StringIO()
-    output.write('digraph "{0}" {{\n'.format(diag_name))
+    output.write(f'digraph "{diag_name}" {{\n')
     output.write('  node [fontname="monospace", shape="box"]')
     by_key = {}
     by_rank = {}
@@ -67,7 +67,7 @@ def jira2dot(
             rank = rank_func(issue)
             if rank:
                 by_rank.setdefault(str(rank), []).append(issue)
-                logging.debug("Set rank {0} for issue {1}".format(rank, issue.key))
+                logging.debug(f"Set rank {rank} for issue {issue.key}")
 
         # Get any custom attributes from the caller.
         if attr_func is None:
@@ -92,8 +92,8 @@ def jira2dot(
         label = """
         label=
             <<table border="0">
-                <tr><td><b>{0}</b></td><td><b>{1}</b></td></tr>
-                <tr><td colspan="2">{2}</td></tr>
+                <tr><td><b>{}</b></td><td><b>{}</b></td></tr>
+                <tr><td colspan="2">{}</td></tr>
             </table>>
         """.format(
             issue.key, owner, "<br/>".join(textwrap.wrap(summary, width=25))
@@ -105,24 +105,24 @@ def jira2dot(
             description = "&#10;".join(
                 issue.fields.description.replace('"', "'").split("\n")
             )
-            tooltip = 'tooltip="{0}"'.format(description)
+            tooltip = f'tooltip="{description}"'
         else:
-            tooltip = 'tooltip="{0}"'.format(summary)
+            tooltip = f'tooltip="{summary}"'
         attr.append(tooltip)
 
         # Write the node's attributes.
-        attr.append('URL="{0}"'.format(issue.permalink()))
-        output.write('  "{0}" [{1}]\n'.format(issue.key, ", ".join(attr)))
+        attr.append(f'URL="{issue.permalink()}"')
+        output.write('  "{}" [{}]\n'.format(issue.key, ", ".join(attr)))
 
     # Setup ranks (caller-defined, but probably indicate a release or cycle)
     if ranks:
         output.write('  node [fontname="monospace", shape=none]\n')
-        output.write("  {0}\n".format(" -> ".join('"{0}"'.format(r) for r in ranks)))
+        output.write("  {}\n".format(" -> ".join(f'"{r}"' for r in ranks)))
         for rank in ranks:
             items = [rank] + [i.key for i in by_rank.get(str(rank), [])]
             output.write(
-                "  {{ rank=same; {0} }}\n".format(
-                    "; ".join('"{0}"'.format(item) for item in items)
+                "  {{ rank=same; {} }}\n".format(
+                    "; ".join(f'"{item}"' for item in items)
                 )
             )
 
@@ -137,7 +137,7 @@ def jira2dot(
                         )
                     else:
                         logging.debug(
-                            "Skipping external link {0.key} -> {1.key}".format(
+                            "Skipping external link {.key} -> {.key}".format(
                                 issue, link.outwardIssue
                             )
                         )

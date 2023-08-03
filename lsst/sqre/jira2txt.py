@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import io
 import sys
 from collections import OrderedDict
@@ -112,20 +110,18 @@ def jirakpm2txt(issues, server, csv=False, url_base=None):
             related_issues = get_issues_by_key(server, relates)
             for dm in related_issues:
                 if not hasattr(dm.fields, "customfield_10900"):
-                    print("Cycle missing from {} via {}".format(dm, i), file=sys.stderr)
+                    print(f"Cycle missing from {dm} via {i}", file=sys.stderr)
                     break
                 cyc = dm.fields.customfield_10900
                 if cyc is None:
-                    print("Cycle missing from {} via {}".format(dm, i), file=sys.stderr)
+                    print(f"Cycle missing from {dm} via {i}", file=sys.stderr)
                     break
                 cyc = dm_to_dlp_cycle(cyc)
                 row[cyc] = dm.fields.customfield_11000
                 if str(dm.fields.customfield_11001) != metric_unit:
                     print(
-                        "{}: Unit mismatch between DLP KPM and {} \
-                            ({} != {})".format(
-                            i, dm, metric_unit, dm.fields.customfield_11001
-                        ),
+                        f"{i}: Unit mismatch between DLP KPM and {dm} \
+                            ({metric_unit} != {dm.fields.customfield_11001})",
                         file=sys.stderr,
                     )
                 # In CSV mode we can include a URL to the actual issue
@@ -143,7 +139,7 @@ def _make_csv_hyperlink_from_issue(url_base, issue, text):
     # Create a CSV-Excel hyperlink
     # Base URL is the JIRA server
     fragment = "browse/" + issue.key
-    return '=HYPERLINK("{}","{}")'.format(urljoin(url_base, fragment), text)
+    return f'=HYPERLINK("{urljoin(url_base, fragment)}","{text}")'
 
 
 def _table2text(table, csv=False):
