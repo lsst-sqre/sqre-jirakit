@@ -42,40 +42,60 @@ def render_text(server, query, generator):
 def build_server(server):
     app = flask.Flask(__name__)
 
-    @app.route('/wbs/<wbs>', defaults={'fmt': DEFAULT_FMT})
-    @app.route('/wbs/<fmt>/<wbs>')
+    @app.route("/wbs/<wbs>", defaults={"fmt": DEFAULT_FMT})
+    @app.route("/wbs/<fmt>/<wbs>")
     def get_formatted_graph(fmt, wbs):
         if fmt not in FMTS:
             flask.abort(404)
         issues = get_issues(server, build_query(("Milestone", "Meta-epic"), wbs))
-        graph = graphviz.Source(jira2dot(issues, attr_func=attr_func, rank_func=rank_func,
-                                         ranks=cycles()), format=fmt)
+        graph = graphviz.Source(
+            jira2dot(issues, attr_func=attr_func, rank_func=rank_func, ranks=cycles()),
+            format=fmt,
+        )
         with tempdir() as dirname:
             graph.render("graph", cleanup=True, directory=dirname)
-            return flask.send_file(os.path.join(dirname, "graph%s%s" % (os.path.extsep, fmt)))
+            return flask.send_file(
+                os.path.join(dirname, "graph%s%s" % (os.path.extsep, fmt))
+            )
 
-    @app.route('/wbs/csv/<wbs>')
+    @app.route("/wbs/csv/<wbs>")
     def get_csv(wbs):
-        return render_text(server, build_query(("Milestone",), wbs),
-                           partial(jira2txt, csv=True, show_key=True, show_title=True,
-                                   url_base=(urljoin(server, "/browse") if
-                                             flask.request.args.get('link') else "")))
+        return render_text(
+            server,
+            build_query(("Milestone",), wbs),
+            partial(
+                jira2txt,
+                csv=True,
+                show_key=True,
+                show_title=True,
+                url_base=(
+                    urljoin(server, "/browse") if flask.request.args.get("link") else ""
+                ),
+            ),
+        )
 
-    @app.route('/wbs/tab/<wbs>')
+    @app.route("/wbs/tab/<wbs>")
     def get_tab(wbs):
-        return render_text(server, build_query(("Milestone",), wbs), partial(jira2txt, csv=False))
+        return render_text(
+            server, build_query(("Milestone",), wbs), partial(jira2txt, csv=False)
+        )
 
-    @app.route('/wbs/sanity/<wbs>')
+    @app.route("/wbs/sanity/<wbs>")
     def get_sanity(wbs):
         def sanity_wrapper(issues):
             return check_sanity(issues) or "No errors found."
 
-        return render_text(server, build_query(("Milestone", "Meta-epic"), wbs), sanity_wrapper)
+        return render_text(
+            server, build_query(("Milestone", "Meta-epic"), wbs), sanity_wrapper
+        )
 
-    @app.route('/kpm')
+    @app.route("/kpm")
     def get_kpm():
-        return render_text(server, build_query(('"Key Metric"',), None),
-                           partial(jirakpm2txt, server=server, csv=False))
+        return render_text(
+            server,
+            build_query(('"Key Metric"',), None),
+            partial(jirakpm2txt, server=server, csv=False),
+        )
 
     return app
 

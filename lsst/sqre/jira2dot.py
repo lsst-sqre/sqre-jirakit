@@ -6,12 +6,15 @@ from io import StringIO
 def attr_func(issue):
     if issue.fields.issuetype.name == "Milestone":
         if issue.fields.resolution and issue.fields.resolution.name == "Done":
-            return 'style="rounded,filled";fillcolor="palegreen"',
+            return ('style="rounded,filled";fillcolor="palegreen"',)
         else:
-            return 'style="rounded,filled";fillcolor="powderblue"',
-    if (issue.fields.issuetype.name == "Meta-epic" and issue.fields.resolution and
-            issue.fields.resolution.name == "Done"):
-        return 'style="filled";fillcolor="seashell2"',
+            return ('style="rounded,filled";fillcolor="powderblue"',)
+    if (
+        issue.fields.issuetype.name == "Meta-epic"
+        and issue.fields.resolution
+        and issue.fields.resolution.name == "Done"
+    ):
+        return ('style="filled";fillcolor="seashell2"',)
     else:
         return ()
 
@@ -22,8 +25,14 @@ def rank_func(issue):
     return None
 
 
-def jira2dot(issues, link_types=("Blocks",), attr_func=None, rank_func=None,
-             ranks=None, diag_name="Diagram"):
+def jira2dot(
+    issues,
+    link_types=("Blocks",),
+    attr_func=None,
+    rank_func=None,
+    ranks=None,
+    diag_name="Diagram",
+):
     """Generate a GraphViz dot file displaying the relationships between JIRA issues.
 
     Arguments:
@@ -38,8 +47,8 @@ def jira2dot(issues, link_types=("Blocks",), attr_func=None, rank_func=None,
       diag_name ------------- Name for the top-level graph node.
     """
     output = StringIO()
-    output.write(u'digraph "{0}" {{\n'.format(diag_name))
-    output.write(u'  node [fontname="monospace", shape="box"]')
+    output.write('digraph "{0}" {{\n'.format(diag_name))
+    output.write('  node [fontname="monospace", shape="box"]')
     by_key = {}
     by_rank = {}
 
@@ -55,7 +64,7 @@ def jira2dot(issues, link_types=("Blocks",), attr_func=None, rank_func=None,
 
         # Get any custom attributes from the caller.
         if attr_func is None:
-            attr = [u"shape=box"]
+            attr = ["shape=box"]
         else:
             attr = list(attr_func(issue))
 
@@ -67,36 +76,43 @@ def jira2dot(issues, link_types=("Blocks",), attr_func=None, rank_func=None,
             owner = issue.fields.customfield_10502.value  # Team
 
         # Generate a fancy label containing the issue key, the owner (WBS or Team), and summary.
-        summary = issue.fields.summary.replace("&", u"&amp;")
-        label = u"""
+        summary = issue.fields.summary.replace("&", "&amp;")
+        label = """
         label=
             <<table border="0">
                 <tr><td><b>{0}</b></td><td><b>{1}</b></td></tr>
                 <tr><td colspan="2">{2}</td></tr>
             </table>>
-        """.format(issue.key, owner, u"<br/>".join(textwrap.wrap(summary, width=25)))
+        """.format(
+            issue.key, owner, "<br/>".join(textwrap.wrap(summary, width=25))
+        )
         attr.append(label)
 
         # Use the issue description as the tooltip (mouseover text)
         if issue.fields.description:
-            description = u"&#10;".join(issue.fields.description.replace('"', "'").split("\n"))
-            tooltip = u'tooltip="{0}"'.format(description)
+            description = "&#10;".join(
+                issue.fields.description.replace('"', "'").split("\n")
+            )
+            tooltip = 'tooltip="{0}"'.format(description)
         else:
-            tooltip = u'tooltip="{0}"'.format(summary)
+            tooltip = 'tooltip="{0}"'.format(summary)
         attr.append(tooltip)
 
         # Write the node's attributes.
-        attr.append(u'URL="{0}"'.format(issue.permalink()))
-        output.write(u'  "{0}" [{1}]\n'.format(issue.key, ", ".join(attr)))
+        attr.append('URL="{0}"'.format(issue.permalink()))
+        output.write('  "{0}" [{1}]\n'.format(issue.key, ", ".join(attr)))
 
     # Setup ranks (caller-defined, but probably indicate a release or cycle)
     if ranks:
-        output.write(u'  node [fontname="monospace", shape=none]\n')
-        output.write(u'  {0}\n'.format(u" -> ".join(u'"{0}"'.format(r) for r in ranks)))
+        output.write('  node [fontname="monospace", shape=none]\n')
+        output.write("  {0}\n".format(" -> ".join('"{0}"'.format(r) for r in ranks)))
         for rank in ranks:
             items = [rank] + [i.key for i in by_rank.get(str(rank), [])]
-            output.write(u'  {{ rank=same; {0} }}\n'.format(u"; ".join(u'"{0}"'.format(item)
-                                                                       for item in items)))
+            output.write(
+                "  {{ rank=same; {0} }}\n".format(
+                    "; ".join('"{0}"'.format(item) for item in items)
+                )
+            )
 
     # Declare issue links
     for issue in by_key.values():
@@ -104,13 +120,23 @@ def jira2dot(issues, link_types=("Blocks",), attr_func=None, rank_func=None,
             if link.type.name in link_types:
                 if hasattr(link, "outwardIssue"):
                     if link.outwardIssue.key in by_key:
-                        output.write(u'  "{0.key}" -> "{1.key}"\n'.format(issue, link.outwardIssue))
+                        output.write(
+                            '  "{0.key}" -> "{1.key}"\n'.format(
+                                issue, link.outwardIssue
+                            )
+                        )
                     else:
                         logging.debug(
-                            "Skipping external link {0.key} -> {1.key}".format(issue, link.outwardIssue)
+                            "Skipping external link {0.key} -> {1.key}".format(
+                                issue, link.outwardIssue
+                            )
                         )
                 else:
-                    logging.debug("Skipping inward link {0.key} -> {1.key}".format(link.inwardIssue, issue))
+                    logging.debug(
+                        "Skipping inward link {0.key} -> {1.key}".format(
+                            link.inwardIssue, issue
+                        )
+                    )
 
-    output.write(u"}\n")
+    output.write("}\n")
     return output.getvalue()

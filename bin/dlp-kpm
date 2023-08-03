@@ -7,23 +7,35 @@ import argparse
 import lsst.sqre.jira2txt as j2txt
 import lsst.sqre.jirakit as jirakit
 
-parser = argparse.ArgumentParser(epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit",
-                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser = argparse.ArgumentParser(
+    epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit",
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+)
 
-parser.add_argument('-s', '--server', default=jirakit.SERVER)
-parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.5')
+parser.add_argument("-s", "--server", default=jirakit.SERVER)
+parser.add_argument("-v", "--version", action="version", version="%(prog)s 0.5")
 
 subparsers = parser.add_subparsers(dest="mode")
 # http://stackoverflow.com/questions/23349349/argparse-with-required-subparser
 subparsers.required = True
 
-parser_csv = subparsers.add_parser('csv', help='Generate CSV output',
-                                   formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser_csv.add_argument('--no-url', action='store_true', default=False,
-                        help='Do not include hyperlinks in CSV output')
+parser_csv = subparsers.add_parser(
+    "csv",
+    help="Generate CSV output",
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+)
+parser_csv.add_argument(
+    "--no-url",
+    action="store_true",
+    default=False,
+    help="Do not include hyperlinks in CSV output",
+)
 
-parser_tab = subparsers.add_parser('tab', help='Generate tabular output',
-                                   formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser_tab = subparsers.add_parser(
+    "tab",
+    help="Generate tabular output",
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+)
 
 opts = parser.parse_args()
 
@@ -32,6 +44,11 @@ if not hasattr(opts, "no_url"):
 
 issues = jirakit.get_issues(opts.server, jirakit.build_query(('"Key Metric"',), None))
 
-print(j2txt.jirakpm2txt(issues, opts.server,
-                        csv=True if opts.mode == "csv" else False,
-                        url_base=(None if opts.no_url else opts.server)))
+print(
+    j2txt.jirakpm2txt(
+        issues,
+        opts.server,
+        csv=True if opts.mode == "csv" else False,
+        url_base=(None if opts.no_url else opts.server),
+    )
+)

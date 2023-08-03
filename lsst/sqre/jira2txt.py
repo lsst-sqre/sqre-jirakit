@@ -20,7 +20,7 @@ from lsst.sqre.jirakit import cycles, dm_to_dlp_cycle, get_issues_by_key
 def jira2txt(issues, csv=False, show_key=True, show_title=False, url_base=None):
     def makeRow(wbs, cycles, blank=None):
         row = OrderedDict()
-        row['WBS'] = wbs
+        row["WBS"] = wbs
         for cycle in cycles():
             row[cycle] = blank
         return row
@@ -28,19 +28,22 @@ def jira2txt(issues, csv=False, show_key=True, show_title=False, url_base=None):
     table = []
     for issue in issues:
         if not issue.fields.fixVersions:
-            print('No release assigned to', issue.key, file=sys.stderr)
+            print("No release assigned to", issue.key, file=sys.stderr)
             continue
         cyc = issue.fields.fixVersions[0].name
 
-        if hasattr(issue.fields, "customfield_10500") and issue.fields.customfield_10500:
+        if (
+            hasattr(issue.fields, "customfield_10500")
+            and issue.fields.customfield_10500
+        ):
             WBS = issue.fields.customfield_10500
         else:
-            WBS = 'None'
+            WBS = "None"
 
         row = makeRow(WBS, cycles, "" if csv else "-")
 
         if show_title and show_key:
-            row[cyc] = issue.key + ': ' + issue.fields.summary
+            row[cyc] = issue.key + ": " + issue.fields.summary
         elif show_title:
             row[cyc] = issue.fields.summary
         elif show_key:
@@ -62,10 +65,11 @@ def jirakpm2txt(issues, server, csv=False, url_base=None):
     #  customfield_11001: units
     def make_row(kpm, blank=None):
         row = OrderedDict()
-        row['KPM'] = kpm.key
-        row['Title'] = kpm.fields.summary
-        row['Target'] = "{} {}".format(kpm.fields.customfield_11000,
-                                       kpm.fields.customfield_11001)
+        row["KPM"] = kpm.key
+        row["Title"] = kpm.fields.summary
+        row["Target"] = "{} {}".format(
+            kpm.fields.customfield_11000, kpm.fields.customfield_11001
+        )
         for cycle in cycles():
             row[cycle] = blank
         return row
@@ -110,9 +114,12 @@ def jirakpm2txt(issues, server, csv=False, url_base=None):
                 cyc = dm_to_dlp_cycle(cyc)
                 row[cyc] = dm.fields.customfield_11000
                 if str(dm.fields.customfield_11001) != metric_unit:
-                    print("{}: Unit mismatch between DLP KPM and {} ({} != {})"
-                          .format(i, dm, metric_unit, dm.fields.customfield_11001),
-                          file=sys.stderr)
+                    print(
+                        "{}: Unit mismatch between DLP KPM and {} ({} != {})".format(
+                            i, dm, metric_unit, dm.fields.customfield_11001
+                        ),
+                        file=sys.stderr,
+                    )
                 # In CSV mode we can include a URL to the actual issue
                 if csv and url_base:
                     row[cyc] = _make_csv_hyperlink_from_issue(url_base, dm, row[cyc])
@@ -143,4 +150,4 @@ def _table2text(table, csv=False):
         writer.writerows(table)
         return buf.getvalue()
     else:
-        return tabulate(table, headers='keys', tablefmt='pipe')
+        return tabulate(table, headers="keys", tablefmt="pipe")

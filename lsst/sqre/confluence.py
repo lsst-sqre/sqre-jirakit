@@ -9,14 +9,12 @@ except ImportError:
 
 
 def bold(text):
-    """Make Confluence bold text.
-    """
+    """Make Confluence bold text."""
     return "*{0}*".format(text)
 
 
 def heading(title, level=1):
-    """Make a Confluence heading level.
-    """
+    """Make a Confluence heading level."""
     return "h{0}. {1}".format(level, title)
 
 
@@ -36,6 +34,7 @@ def table(headings, *columns, **kwargs):
         A string containing the table formatting and information.
     """
     import os
+
     table = []
 
     onerow = kwargs.get("onerow", False)
