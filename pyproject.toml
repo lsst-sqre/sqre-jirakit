@@ -41,6 +41,9 @@ dev = [
     "documenteer[guide]<1",
 ]
 
+[project.scripts]
+testscript = "src.scripts:test"
+
 [project.urls]
 Homepage = "https://sqre-jirakit.lsst.io"
 Source = "https://github.com/lsst-sqre/sqre-jirakit"
