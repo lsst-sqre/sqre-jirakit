@@ -42,8 +42,8 @@ dev = [
 ]
 
 [project.scripts]
-init_test = "src.lsst.scripts:init_test"
-kpm_test = "src.lsst.scripts:testKpm"
+init_test = "lsst.scripts:init_test"
+kpm_test = "lsst.scripts:testKpm"
 
 [project.urls]
 Homepage = "https://sqre-jirakit.lsst.io"
