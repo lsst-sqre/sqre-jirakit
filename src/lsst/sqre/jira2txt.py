@@ -12,7 +12,7 @@ except ImportError:
 
 from tabulate import tabulate
 
-from lsst.sqre.jirakit import cycles, dm_to_dlp_cycle, get_issues_by_key
+from .jirakit import cycles, dm_to_dlp_cycle, get_issues_by_key
 
 
 def jira2txt(
