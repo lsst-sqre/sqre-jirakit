@@ -2,9 +2,7 @@
 
 from __future__ import print_function
 
-__all__ = [
-    "testKpm",
-]
+__all__ = ("testKpm",)
 
 import argparse
 import sys

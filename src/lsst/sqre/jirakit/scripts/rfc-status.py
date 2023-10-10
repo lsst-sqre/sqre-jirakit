@@ -17,14 +17,17 @@ import argparse
 
 import src.lsst.sqre.jirakit as jirakit
 
+parser = argparse.ArgumentParser(
+    epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit",
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    description="Front-end to JIRA-RFC database.  Choose a "
+    "command from the list below; add '-h' for help.",
+)
 
-parser = argparse.ArgumentParser(epilog="LSST jirakit: https://github.com/lsst-sqre/sqre-jirakit",
-                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                 description="Front-end to JIRA-RFC database.  Choose a "
-                                 "command from the list below; add '-h' for help.")
-
-parser.add_argument('-s', '--server', default=jirakit.SERVER)
-parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
+parser.add_argument("-s", "--server", default=jirakit.SERVER)
+parser.add_argument(
+    "-v", "--version", action="version", version="%(prog)s 0.1"
+)
 
 opts = parser.parse_args()
 
@@ -44,7 +47,8 @@ for i in issues:
             if hasattr(link, "outwardIssue"):
                 triggers.append(link.outwardIssue.key)
         elif link.type.name == "Duplicate":
-            # I hope this doesn't happen as a duplicate should not be in ADOPTED state
+            # I hope this doesn't happen as a duplicate should not be in
+            # ADOPTED state
             print("WARNING: {} is marked as a duplicate".format(i.key))
 
     if not triggers:
