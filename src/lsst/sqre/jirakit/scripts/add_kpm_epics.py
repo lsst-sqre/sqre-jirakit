@@ -2,8 +2,6 @@
 
 from __future__ import print_function
 
-__all__ = ("testKpm",)
-
 import argparse
 import sys
 import textwrap
@@ -14,10 +12,6 @@ from jira.exceptions import JIRAError
 if int(sys.version[0]) < 3:
     # called raw_input on python2
     input = raw_input  # noqa
-
-
-def testKpm():
-    print("test12not3")
 
 
 def checkArguments(args, jiraInst):
