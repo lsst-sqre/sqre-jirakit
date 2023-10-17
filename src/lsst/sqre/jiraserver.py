@@ -18,13 +18,8 @@ except ImportError:
 
 from lsst.sqre.jira2dot import attr_func, jira2dot, rank_func
 from lsst.sqre.jira2txt import jira2txt, jirakpm2txt
-from lsst.sqre.jirakit import (
-    SERVER,
-    build_query,
-    check_sanity,
-    cycles,
-    get_issues,
-)
+
+from .jirakit import SERVER, build_query, check_sanity, cycles, get_issues
 
 DEFAULT_FMT = "pdf"
 

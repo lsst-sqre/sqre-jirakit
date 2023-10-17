@@ -7,9 +7,9 @@ import sys
 import textwrap
 
 from jira import JIRA
-from jira.utils import JIRAError
+from jira.exceptions import JIRAError
 
-if sys.version[0] < 3:
+if int(sys.version[0]) < 3:
     # called raw_input on python2
     input = raw_input  # noqa
 

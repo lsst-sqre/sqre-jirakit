@@ -1,6 +1,6 @@
 [project]
 # https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
-name = "example"
+name = "sqre-jirakit"
 description = "Short one-sentence description of the package"
 license = {file = "LICENSE"}
 readme= "README.md"
@@ -41,9 +41,12 @@ dev = [
     "documenteer[guide]<1",
 ]
 
+[project.scripts]
+# Scripts go here
+
 [project.urls]
-Homepage = "https://example.lsst.io"
-Source = "https://github.com/lsst-sqre/example"
+Homepage = "https://sqre-jirakit.lsst.io"
+Source = "https://github.com/lsst-sqre/sqre-jirakit"
 
 [build-system]
 requires = [
@@ -58,12 +61,12 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
 where = ["src"]
-include = ["example*"]
+include = ["sqre-jirakit*"]
 
 [tool.coverage.run]
 parallel = true
 branch = true
-source = ["example"]
+source = ["sqre-jirakit"]
 
 [tool.coverage.paths]
 source = ["src", ".tox/*/site-packages"]
@@ -122,7 +125,7 @@ add-ignore = [
 [tool.isort]
 profile = "black"
 line_length = 79
-known_first_party = ["example", "tests"]
+known_first_party = ["sqre-jirakit", "tests"]
 skip = ["docs/conf.py"]
 
 [tool.pytest.ini_options]
